@@ -1,2 +1,2 @@
-# dms-prometheus-grafana
+# dsm-prometheus-grafana
 De slimme meter uitlezen met prometheus en grafana
