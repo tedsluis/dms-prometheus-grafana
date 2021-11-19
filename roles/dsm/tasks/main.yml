@@ -1,0 +1,375 @@
+---
+
+- name: install podman
+  ansible.builtin.package:
+    name: "{{item}}"
+    state: present
+  loop:
+    - podman
+    - git
+  become: true
+
+- name: create directories
+  file:
+    path: "{{item.directory}}"
+    owner: "{{item.owner}}"
+    group: "{{item.group}}"
+    mode: "{{item.mode}}"
+    state: directory
+  become: true
+  with_items:
+    - { directory: "/var/lib/dsm"                                     ,owner: "root"  ,group: "root"  ,mode: "0777" }
+    - { directory: "/var/lib/dsm/prometheus"                          ,owner: "65534" ,group: "65534" ,mode: "0775" }
+    - { directory: "/var/lib/dsm/prometheus/data"                     ,owner: "65534" ,group: "65534" ,mode: "0775" }
+    - { directory: "/var/lib/dsm/prometheus/config"                   ,owner: "65534" ,group: "65534" ,mode: "0775" }
+    - { directory: "/var/lib/dsm/prometheus/config/rules"             ,owner: "65534" ,group: "65534" ,mode: "0775" }
+    - { directory: "/var/lib/dsm/prometheus/config/targets"           ,owner: "65534" ,group: "65534" ,mode: "0775" }
+    - { directory: "/var/lib/dsm/grafana"                             ,owner: "472"   ,group: "472"   ,mode: "0775" }
+    - { directory: "/var/lib/dsm/grafana/etc"                         ,owner: "472"   ,group: "472"   ,mode: "0775" }
+    - { directory: "/var/lib/dsm/grafana/etc/certs"                   ,owner: "472"   ,group: "472"   ,mode: "0775" }
+    - { directory: "/var/lib/dsm/grafana/etc/dashboards"              ,owner: "472"   ,group: "472"   ,mode: "0775" }
+    - { directory: "/var/lib/dsm/grafana/etc/provisioning"            ,owner: "472"   ,group: "472"   ,mode: "0775" }
+    - { directory: "/var/lib/dsm/grafana/etc/provisioning/dashboards" ,owner: "472"   ,group: "472"   ,mode: "0775" }
+    - { directory: "/var/lib/dsm/grafana/etc/provisioning/datasources",owner: "472"   ,group: "472"   ,mode: "0775" }
+    - { directory: "/var/lib/dsm/grafana/etc/provisioning/notifiers"  ,owner: "472"   ,group: "472"   ,mode: "0775" }
+    - { directory: "/var/lib/dsm/grafana/etc/provisioning/plugins"    ,owner: "472"   ,group: "472"   ,mode: "0775" }
+    - { directory: "/var/lib/dsm/grafana/lib"                         ,owner: "472"   ,group: "472"   ,mode: "0775" }
+    - { directory: "/var/lib/dsm/grafana/usr"                         ,owner: "472"   ,group: "472"   ,mode: "0775" }
+    - { directory: "/var/lib/dsm/dsm-exporter"                        ,owner: "root"  ,group: "root"  ,mode: "0775" }
+    - { directory: "/var/lib/dsm/alertmanager"                        ,owner: "65534" ,group: "65534" ,mode: "0775" }
+
+- name: Pull images
+  containers.podman.podman_image:
+    name: "{{item}}"
+  loop:
+    - quay.io/prometheus/prometheus:v2.31.0
+    - docker.io/grafana/grafana:8.2.3
+    - quay.io/prometheus/alertmanager:v0.23.0
+    - quay.io/prometheus/node-exporter:v1.2.2
+    - docker.io/alpine:3.13
+    - docker.io/golang:1.16-alpine
+  register: _image_pull
+  become: true
+
+- debug:
+    var: _image_pull
+
+- name: git clone https://github.com/Nozzie/gotsmart.git
+  ansible.builtin.git:
+    repo: 'https://github.com/Nozzie/gotsmart.git'
+    dest: /var/lib/dsm/dsm-exporter
+    version: master
+    force: yes
+  become: true
+
+- name: Build dsm-exporter image
+  containers.podman.podman_image:
+    name: dsm-exporter
+    path: /var/lib/dsm/dsm-exporter
+  become: true
+
+- name: create /var/lib/dsm/prometheus/config/rules/rules.yml
+  copy:
+    src: rules.yml
+    dest: /var/lib/dsm/prometheus/config/rules/rules.yml
+    owner: 65534
+    group: 65534
+    mode: 0664
+  become: true
+  notify: _restart_prometheus
+
+- name: create /var/lib/dsm/prometheus/config/prometheus.yml
+  template:
+    src: prometheus.yml.j2
+    dest: /var/lib/dsm/prometheus/config/prometheus.yml
+    owner: 65534
+    group: 65534
+    mode: 0664
+  become: true
+  notify: _restart_prometheus
+
+- name: create /var/lib/dsm/alertmanager/alertmanager.yml
+  template:
+    src: alertmanager.yml.j2
+    dest: /var/lib/dsm/alertmanager/alertmanager.yml
+    owner: 65534
+    group: 65534
+    mode: 0664
+  become: true
+  notify: _restart_alertmanager
+
+- name: create /var/lib/dsm/grafana/etc/grafana.ini
+  template:
+    src: grafana.ini.j2
+    dest: /var/lib/dsm/grafana/etc/grafana.ini
+    owner: 472
+    group: 472
+    mode: 0666
+  become: true
+  notify: _restart_grafana
+
+- name: create /var/lib/dsm/grafana/etc/dashboards/dashboard.*.json
+  copy:
+    src: "{{item}}"
+    dest: "/var/lib/dsm/grafana/etc/dashboards/{{item}}"
+    owner: 472
+    group: 472
+    mode: 0666
+  become: true
+  with_items:
+    - dashboard1.json
+    - dashboard2.json
+  notify: _restart_grafana
+
+- name: create /var/lib/dsm/grafana/etc/provisioning/datasources/datasource.yaml
+  template:
+    src: datasource.yaml.j2
+    dest: /var/lib/dsm/grafana/etc/provisioning/datasources/datasource.yaml
+    owner: 472
+    group: 472
+    mode: 0666
+  become: true
+  notify: _restart_grafana
+
+- name: create /var/lib/dsm/grafana/etc/provisioning/dashboards/dashboard.*.yaml
+  copy:
+    src: "{{item}}"
+    dest: "/var/lib/dsm/grafana/etc/provisioning/dashboards/{{item}}"
+    owner: 472
+    group: 472
+    mode: 0666
+  become: true
+  with_items: 
+    - dashboard1.yaml
+    - dashboard2.yaml
+  notify: _restart_grafana
+
+- name: create pod
+  containers.podman.podman_pod:
+    name: dsm
+    state: started
+    ports:
+      - 3000:3000
+      - 8080:8080
+      - 9090:9090
+      - 9093:9093
+      - 9100:9100
+  become: true
+
+- name: set permissions and baud rate
+  shell: |
+    stty -F /dev/ttyUSB0 115200
+    chmod 666 /dev/ttyUSB0
+
+- name: create dsm exporter container
+  containers.podman.podman_container:
+    name: dsm-exporter
+    image: localhost/dsm-exporter:latest
+    device: /dev/ttyUSB0:/dev/ttyUSB0:rwm
+    privileged: yes
+    pod: dsm
+    command: '-device /dev/ttyUSB0'
+    state: present
+    # userns: keep-id
+    recreate: yes
+    expose: 8080
+    generate_systemd:
+      path: /etc/systemd/system
+      restart_policy: on-failure
+      time: 120
+      names: true
+  become: true
+  
+- name: create node-exporter container
+  containers.podman.podman_container:
+    name: node-exporter
+    image: quay.io/prometheus/node-exporter:v1.2.2
+    pod: dsm
+    pid: host
+    # network: host
+    command: '--path.rootfs=/host'
+    state: present
+    user: 65534
+    #userns: keep-id
+    recreate: yes
+    expose: 9090
+    volume:
+      - "/:/host:ro,rslave"
+    generate_systemd:
+      path: /etc/systemd/system
+      restart_policy: on-failure
+      time: 120
+      names: true
+  become: true
+
+- name: create prometheus container
+  containers.podman.podman_container:
+    name: prometheus
+    image: quay.io/prometheus/prometheus:v2.31.0
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--storage.tsdb.retention.time=1500d'
+      - '--storage.tsdb.retention.size=15GB'
+    pod: dsm
+    state: present
+    user: 65534
+    #userns: keep-id
+    recreate: yes
+    expose: 9090
+    volume:
+      - /var/lib/dsm/prometheus/config:/etc/prometheus:z
+      - /var/lib/dsm/prometheus/data:/prometheus:z
+    generate_systemd:
+      path: /etc/systemd/system
+      restart_policy: on-failure
+      time: 120
+      names: true
+  become: true
+
+- name: create alertmanager container
+  containers.podman.podman_container:
+    name: alertmanager
+    image: quay.io/prometheus/alertmanager:v0.23.0
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    pod: dsm
+    state: present
+    user: 65534
+    #userns: keep-id
+    recreate: yes
+    expose: 9093
+    volume:
+      - /var/lib/dsm/alertmanager:/etc/alertmanager:z
+    generate_systemd:
+      path: /etc/systemd/system
+      restart_policy: on-failure
+      time: 120
+      names: true
+  become: true
+
+- name: create grafana container
+  containers.podman.podman_container:
+    name: grafana
+    image: docker.io/grafana/grafana:8.2.3
+    pod: dsm
+    state: present
+    user: 472
+#    userns: keep-id
+    recreate: yes
+    expose: 3000
+    volume:
+      - /var/lib/dsm/grafana/etc:/etc/grafana:z
+      - /var/lib/dsm/grafana/lib:/var/lib/grafana:z
+    generate_systemd:
+      path: /etc/systemd/system
+      restart_policy: on-failure
+      time: 180
+      names: true
+  become: true
+
+- name: start and enable container-dsm-exporter.service
+  systemd:
+    name: container-dsm-exporter
+    state: started
+    daemon_reload: true
+    enabled: true
+  become: true
+
+- name: start and enable container-node-exporter.service
+  systemd:
+    name: container-node-exporter
+    state: started
+    enabled: true
+  become: true
+
+- name: start and enable container-prometheus.service
+  systemd:
+    name: container-prometheus
+    state: started
+    enabled: true
+  become: true
+
+- name: start and enable container-grafana.service
+  systemd:
+    name: container-grafana
+    state: started
+    enabled: true
+  become: true
+
+- name: start and enable container-alertmanager.service
+  systemd:
+    name: container-alertmanager
+    state: started
+    enabled: true
+  become: true
+
+- name: node-exporter container state
+  shell: |
+    podman ps -a --format "{{ '{{' }}.Status{{ '}}' }}  {{ '{{' }}.Names{{ '}}' }}  {{ '{{' }}.ID{{ '}}' }}" --filter 'name=node-exporter'
+  register: _container_state
+  become: true
+
+- debug:
+    var: _container_state
+
+- name: dsm-exporter container state
+  shell: |
+    podman ps -a --format "{{ '{{' }}.Status{{ '}}' }}  {{ '{{' }}.Names{{ '}}' }}  {{ '{{' }}.ID{{ '}}' }}" --filter 'name=dsm-exporter'
+  register: _container_state
+  become: true
+
+- debug:
+    var: _container_state
+
+- name: prometheus container state
+  shell: |
+    podman ps -a --format "{{ '{{' }}.Status{{ '}}' }}  {{ '{{' }}.Names{{ '}}' }}  {{ '{{' }}.ID{{ '}}' }}" --filter 'name=prometheus'
+  register: _container_state
+  become: true
+
+- debug:
+    var: _container_state
+
+- name: alertmanager container state
+  shell: |
+    podman ps -a --format "{{ '{{' }}.Status{{ '}}' }}  {{ '{{' }}.Names{{ '}}' }}  {{ '{{' }}.ID{{ '}}' }}" --filter 'name=alertmanager'
+  register: _container_state
+  become: true
+
+- debug:
+    var: _container_state
+
+- name: grafana container state
+  shell: |
+    podman ps -a --format "{{ '{{' }}.Status{{ '}}' }}  {{ '{{' }}.Names{{ '}}' }}  {{ '{{' }}.ID{{ '}}' }}" --filter 'name=grafana'
+  register: _container_state
+  become: true
+
+- debug:
+    var: _container_state
+
+- name: trigger handelers
+  meta: flush_handlers
+
+- name: "pause until grafana is reachable"
+  uri:
+    url: "http://{{inventory_hostname}}:3000/login"
+    follow_redirects: none
+    method: GET
+  register: _result
+  until: _result.status == 200
+  retries: 100 # 60 * 5 seconds = 5 minutes
+  delay: 5 # Every 5 seconds
+
+- name: set grafana password
+  shell: |
+    podman exec grafana /usr/share/grafana/bin/grafana-cli admin reset-admin-password {{_grafana_admin_password}} --config=/etc/grafana/grafana.ini || echo "set password failed."
+  become: true
+  register: _set_grafana_password
+
+- debug:
+    var: _set_grafana_password

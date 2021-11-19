@@ -1,0 +1,79 @@
+---
+
+
+- name: stop container-dsm-exporter.service
+  listen: _restart_dsm-exporter
+  systemd:
+    name: container-dsm-exporter
+    state: stopped
+    daemon_reload: true
+  become: true
+  
+- name: start container-dsm-exporter.service
+  listen: _restart_dsm-exporter
+  systemd:
+    name: container-dsm-exporter
+    state: started
+  become: true
+
+- name: stop container-node-exporter.service
+  listen: _restart_node-exporter
+  systemd:
+    name: container-dsm-exporter
+    state: stopped
+    daemon_reload: true
+  become: true
+  
+- name: start container-node-exporter.service
+  listen: _restart_node-exporter
+  systemd:
+    name: container-dsm-exporter
+    state: started
+  become: true
+
+- name: stop container-prometheus.service
+  listen: _restart_prometheus
+  systemd:
+    name: container-prometheus
+    state: stopped
+    daemon_reload: true
+  become: true
+  
+- name: start container-prometheus.service
+  listen: _restart_prometheus
+  systemd:
+    name: container-prometheus
+    state: started
+  become: true
+
+- name: stop container-alertmanager.service
+  listen: _restart_alertmanager
+  systemd:
+    name: container-alertmanager
+    state: stopped
+    daemon_reload: true
+  become: true
+  
+- name: start container-alertmanager.service
+  listen: _restart_alertmanager
+  systemd:
+    name: container-alertmanager
+    state: started
+  become: true
+
+- name: stop container-grafana.service
+  listen: _restart_grafana
+  systemd:
+    name: container-grafana
+    state: stopped
+    daemon_reload: true
+  become: true
+  
+- name: start container-grafana.service
+  listen: _restart_grafana
+  systemd:
+    name: container-grafana
+    state: started
+  become: true
+
+

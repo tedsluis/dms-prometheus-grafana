@@ -1,0 +1,237 @@
+groups:
+    - name: linux-server.rules
+      rules:
+      - alert: chronySync
+        annotations:
+          description: 'Chrony not in sync {{ $labels.instance }}'
+          summary: 'Chrony not in sync'
+        expr: node_timex_sync_status{job="node_exporters_https"} == 0
+        for: 1m
+        labels:
+          severity: warning
+      - alert: nodeDown
+        annotations:
+          description: 'Node is down {{ $labels.instance }}'
+          summary: 'Node is down'
+        expr: up==0
+        for: 1m
+        labels:
+          severity: critical
+      - alert: daemonFailed
+        annotations:
+          description: 'A systemd daemon {{ $labels.name }} on node {{ $labels.instance }} failed'
+          summary: 'A systemd daemon failed'
+        expr: node_systemd_unit_state{state="failed"} == 1
+        for: 1m
+        labels:
+          severity: critical
+      - alert: diskMoreThen95%Full
+        annotations:
+          description: 'A disk is filling up, more then 95% used  {{ $labels.instance }},  {{ $labels.instance }}, device {{ $labels.device }}, mountpoint {{ $labels.mountpoint }}'
+          summary: 'A disk is filling up'
+        expr: 100 - ((node_filesystem_avail_bytes{device!="tmpfs"} * 100) / node_filesystem_size_bytes{device!="tmpfs"}) >= 95
+        for: 1m
+        labels:
+          severity: critical
+      - alert: cpu100%Usage
+        annotations:
+          description: '100% CPU usage {{ $labels.instance }}'
+          summary: '100% CPU usage'
+        expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) == 100
+        for: 5m
+        labels:
+          severity: warning
+      - alert: swapUsageAbove50%
+        expr: |
+          (node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes) / node_memory_SwapTotal_bytes * 100 > 50
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          description: 'Instance {{ $labels.instance }} of job {{ $labels.job }} has swap usage above 50% (current value: {{ printf "%.2f" $value }}%) for over 1 hour'
+          summary: 'Swap usage above 50%'
+      - alert: HostMemoryUnderMemoryPressure
+        expr: rate(node_vmstat_pgmajfault[1m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Host memory under memory pressure (instance {{ $labels.instance }})'
+          description: 'The node is under heavy memory pressure. High rate of major page faults\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+      - alert: HostDiskWillFillIn4Hours
+        expr: predict_linear(node_filesystem_free_bytes{fstype!~"tmpfs"}[1h], 4 * 3600) < 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Host disk will fill in 4 hours (instance {{ $labels.instance }})'
+          description: 'Disk will fill in 4 hours at current write rate\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+      - alert: HostUnusualNetworkThroughputIn
+        expr: sum by (instance) (rate(node_network_receive_bytes_total[2m])) / 1024 / 1024 > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Host unusual network throughput in (instance {{ $labels.instance }})'
+          description: 'Host network interfaces are probably receiving too much data (> 100 MB/s)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+      - alert: HostUnusualNetworkThroughputOut
+        expr: sum by (instance) (rate(node_network_transmit_bytes_total[2m])) / 1024 / 1024 > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Host unusual network throughput out (instance {{ $labels.instance }})'
+          description: 'Host network interfaces are probably sending too much data (> 100 MB/s)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+      - alert: HostUnusualDiskReadRate
+        expr: sum by (instance) (rate(node_disk_read_bytes_total[2m])) / 1024 / 1024 > 50
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Host unusual disk read rate (instance {{ $labels.instance }})'
+          description: 'Disk is probably reading too much data (> 50 MB/s)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+      - alert: HostUnusualDiskWriteRate
+        expr: sum by (instance) (rate(node_disk_written_bytes_total[2m])) / 1024 / 1024 > 50
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Host unusual disk write rate (instance {{ $labels.instance }})'
+          description: 'Disk is probably writing too much data (> 50 MB/s)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+      - alert: HostOutOfInodes
+        expr: node_filesystem_files_free{mountpoint ="/rootfs"} / node_filesystem_files{mountpoint ="/rootfs"} * 100 < 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Host out of inodes (instance {{ $labels.instance }})'
+          description: 'Disk is almost running out of available inodes (< 10% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+      - alert: HostUnusualDiskReadLatency
+        expr: rate(node_disk_read_time_seconds_total[1m]) / rate(node_disk_reads_completed_total[1m]) > 0.1 and rate(node_disk_reads_completed_total[1m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Host unusual disk read latency (instance {{ $labels.instance }})'
+          description: 'Disk latency is growing (read operations > 100ms)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+      - alert: HostUnusualDiskWriteLatency
+        expr: rate(node_disk_write_time_seconds_total[1m]) / rate(node_disk_writes_completed_total[1m]) > 0.1 and rate(node_disk_writes_completed_total[1m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Host unusual disk write latency (instance {{ $labels.instance }})'
+          description: 'Disk latency is growing (write operations > 100ms)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+      - alert: HostContextSwitching
+        expr: (rate(node_context_switches_total[5m])) / (count without(cpu, mode) (node_cpu_seconds_total{mode="idle"})) > 50000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Host context switching (instance {{ $labels.instance }})'
+          description: 'Context switching is growing on node (> 1000 / s)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+      - alert: HostPhysicalComponentTooHot
+        expr: node_hwmon_temp_celsius > 55
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Host physical component too hot (instance {{ $labels.instance }})'
+          description: 'Physical hardware component too hot\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+      - alert: HostNodeOvertemperatureAlarm
+        expr: node_hwmon_temp_alarm == 1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Host node overtemperature alarm (instance {{ $labels.instance }})'
+          description: 'Physical node temperature alarm triggered\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+      - alert: HostKernelVersionDeviations
+        expr: count(sum(label_replace(node_uname_info, "kernel", "$1", "release", "([0-9]+.[0-9]+.[0-9]+).*")) by (kernel)) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Host kernel version deviations (instance {{ $labels.nodename }})'
+          description: 'Different kernel versions are running\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+      - alert: HostOomKillDetected
+        expr: increase(node_vmstat_oom_kill[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Host OOM kill detected (instance {{ $labels.instance }})'
+          description: 'OOM kill detected\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+      - alert: HostNetworkReceiveErrors
+        expr: increase(node_network_receive_errs_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Host Network Receive Errors (instance {{ $labels.instance }})'
+          description: '{{ $labels.instance }} interface {{ $labels.device }} has encountered {{ printf "%.0f" $value }} receive errors in the last five minutes.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+      - alert: HostNetworkTransmitErrors
+        expr: increase(node_network_transmit_errs_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Host Network Transmit Errors (instance {{ $labels.instance }})'
+          description: '{{ $labels.instance }} interface {{ $labels.device }} has encountered {{ printf "%.0f" $value }} transmit errors in the last five minutes.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+      - alert: HostNetworkInterfaceSaturated
+        expr: (rate(node_network_receive_bytes_total{device!~"^tap.*"}[1m]) + rate(node_network_transmit_bytes_total{device!~"^tap.*"}[1m])) / node_network_speed_bytes{device!~"^tap.*"} > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Host Network Interface Saturated (instance {{ $labels.instance }})'
+          description: 'The network interface "{{ $labels.interface }}" on "{{ $labels.instance }}" is getting overloaded.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+      - alert: BlackboxProbeFailed
+        expr: probe_success == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Blackbox probe failed (instance {{ $labels.instance }})'
+          description: 'Probe failed\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+      - alert: BlackboxSlowProbe
+        expr: avg_over_time(probe_duration_seconds[1m]) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Blackbox slow probe (instance {{ $labels.instance }})'
+          description: 'Blackbox probe took more than 1s to complete\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+      - alert: BlackboxProbeHttpFailure
+        expr: probe_http_status_code <= 199 OR probe_http_status_code >= 400
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Blackbox probe HTTP failure (instance {{ $labels.instance }})'
+          description: 'HTTP status code is not 200-399\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+      - alert: BlackboxSslCertificateWillExpireSoon
+        expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 30
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Blackbox SSL certificate will expire soon (instance {{ $labels.instance }})'
+          description: 'SSL certificate expires in 30 days\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+      - alert: BlackboxSslCertificateWillExpireSoon
+        expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 3
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Blackbox SSL certificate will expire soon (instance {{ $labels.instance }})'
+          description: 'SSL certificate expires in 3 days\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+      - alert: BlackboxSslCertificateExpired
+        expr: probe_ssl_earliest_cert_expiry - time() <= 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Blackbox SSL certificate expired (instance {{ $labels.instance }})'
+          description: 'SSL certificate has expired already\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
+

@@ -1,0 +1,13 @@
+#!/usr/bin/env ansible-playbook
+
+- name: deploy-dsm
+
+  hosts:
+    - lenovo
+    - dsm
+
+  vars:
+    ansible_user: ansible
+
+  roles:
+  - dsm
