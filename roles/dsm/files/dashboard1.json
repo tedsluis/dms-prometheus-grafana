@@ -106,7 +106,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "delta(gotsmart_active_power_delivered_l1_kw[30d])",
+          "expr": "delta(gotsmart_electricity_delivered_to_client_tariff_1_kwh[30d]) + delta(gotsmart_electricity_delivered_to_client_tariff_2_kwh[30d]) ",
           "format": "time_series",
           "instant": true,
           "interval": "",
@@ -186,7 +186,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "delta(gotsmart_active_power_delivered_l1_kw[30d]) * 0.21",
+          "expr": "(delta(gotsmart_electricity_delivered_to_client_tariff_1_kwh[30d]) + delta(gotsmart_electricity_delivered_to_client_tariff_2_kwh[30d])) * 0.21",
           "format": "time_series",
           "instant": true,
           "interval": "",
@@ -457,7 +457,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "delta(gotsmart_active_power_delivered_l1_kw[1w])",
+          "expr": "delta(gotsmart_electricity_delivered_to_client_tariff_1_kwh[1w]) + delta(gotsmart_electricity_delivered_to_client_tariff_2_kwh[1w]) ",
           "format": "time_series",
           "instant": true,
           "interval": "",
@@ -537,7 +537,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "delta(gotsmart_active_power_delivered_l1_kw[1w]) * 0.21",
+          "expr": "(delta(gotsmart_electricity_delivered_to_client_tariff_1_kwh[1w]) + delta(gotsmart_electricity_delivered_to_client_tariff_2_kwh[1w])) * 0.21",
           "format": "time_series",
           "instant": true,
           "interval": "",
@@ -617,7 +617,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "delta(gotsmart_active_power_delivered_l1_kw[24h])",
+          "expr": "delta(gotsmart_electricity_delivered_to_client_tariff_1_kwh[1d]) + delta(gotsmart_electricity_delivered_to_client_tariff_2_kwh[1d]) ",
           "format": "time_series",
           "instant": true,
           "interval": "",
@@ -697,7 +697,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "delta(gotsmart_active_power_delivered_l1_kw[1h]) * 0.21",
+          "expr": "(delta(gotsmart_electricity_delivered_to_client_tariff_1_kwh[1d]) + delta(gotsmart_electricity_delivered_to_client_tariff_2_kwh[1d])) * 0.21",
           "format": "time_series",
           "instant": true,
           "interval": "",
@@ -871,7 +871,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "delta(gotsmart_active_power_delivered_l1_kw[30d]) * 0.667",
+          "expr": "delta(gotsmart_gas_usage_m3[30d]) * 0.667",
           "format": "time_series",
           "instant": true,
           "interval": "",
@@ -954,7 +954,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "rate(gotsmart_gas_usage_m3[60m])",
+          "expr": "delta(gotsmart_gas_usage_m3[60m])",
           "format": "time_series",
           "instant": true,
           "interval": "",
@@ -963,7 +963,7 @@
           "refId": "A"
         }
       ],
-      "title": "huidige gas verbruik m3",
+      "title": "huidige gas verbruik m3/h",
       "type": "gauge"
     },
     {
@@ -1214,7 +1214,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "delta(gotsmart_active_power_delivered_l1_kw[7d]) * 0.667",
+          "expr": "delta(gotsmart_gas_usage_m3[7d]) * 0.667",
           "format": "time_series",
           "instant": true,
           "interval": "",
@@ -1374,7 +1374,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "delta(gotsmart_active_power_delivered_l1_kw[1d]) * 0.667",
+          "expr": "delta(gotsmart_gas_usage_m3[1d]) * 0.667",
           "format": "time_series",
           "instant": true,
           "interval": "",
@@ -1473,7 +1473,7 @@
           "fill": false,
           "fillColor": "rgba(255, 255, 255, 1)",
           "line": true,
-          "lineColor": "#96D98D",
+          "lineColor": "#C0D8FF",
           "op": "gt",
           "value": 230,
           "yaxis": "left"
@@ -2012,5 +2012,5 @@
   "timezone": "",
   "title": "Smartmeter",
   "uid": "m-EWEjRgk",
-  "version": 6
+  "version": 11
 }
