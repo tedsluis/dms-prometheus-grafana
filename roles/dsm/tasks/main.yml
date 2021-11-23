@@ -37,6 +37,9 @@
     - { directory: "/var/lib/dsm/grafana/usr"                         ,owner: "472"   ,group: "472"   ,mode: "0775" }
     - { directory: "/var/lib/dsm/dsm-exporter"                        ,owner: "root"  ,group: "root"  ,mode: "0775" }
     - { directory: "/var/lib/dsm/alertmanager"                        ,owner: "65534" ,group: "65534" ,mode: "0775" }
+    - { directory: "/var/lib/dsm/influxdb"                            ,owner: "0"     ,group: "0"     ,mode: "0775" }
+    - { directory: "/var/lib/dsm/influxdb/data"                       ,owner: "0"     ,group: "0"     ,mode: "0775" }
+    - { directory: "/var/lib/dsm/influxdb/config"                     ,owner: "0"     ,group: "0"     ,mode: "0775" }
 
 - name: Pull images
   containers.podman.podman_image:
@@ -48,6 +51,7 @@
     - quay.io/prometheus/node-exporter:v1.2.2
     - docker.io/alpine:3.13
     - docker.io/golang:1.16-alpine
+    - docker.io/influxdb:1.8.10
   register: _image_pull
   become: true
 
@@ -108,6 +112,19 @@
   become: true
   notify: _restart_grafana
 
+- name: create /var/lib/dsm/grafana/etc/provisioning/datasources/
+  template:
+    src: "{{item}}.j2"
+    dest: /var/lib/dsm/grafana/etc/provisioning/datasources/{{item}}
+    owner: 472
+    group: 472
+    mode: 0666
+  become: true
+  loop:
+    - prometheus-datasource.yaml
+    - influxdb-datasource.yaml
+  notify: _restart_grafana
+
 - name: create /var/lib/dsm/grafana/etc/dashboards/dashboard.*.json
   copy:
     src: "{{item}}"
@@ -117,18 +134,9 @@
     mode: 0666
   become: true
   with_items:
-    - dashboard1.json
-    - dashboard2.json
-  notify: _restart_grafana
-
-- name: create /var/lib/dsm/grafana/etc/provisioning/datasources/datasource.yaml
-  template:
-    src: datasource.yaml.j2
-    dest: /var/lib/dsm/grafana/etc/provisioning/datasources/datasource.yaml
-    owner: 472
-    group: 472
-    mode: 0666
-  become: true
+    - smartmeter-dashboard.json
+    - nodeexporter-dashboard.json
+    - fijnstof-dashboard.json
   notify: _restart_grafana
 
 - name: create /var/lib/dsm/grafana/etc/provisioning/dashboards/dashboard.*.yaml
@@ -140,9 +148,20 @@
     mode: 0666
   become: true
   with_items: 
-    - dashboard1.yaml
-    - dashboard2.yaml
+    - smartmeter-dashboard.yaml
+    - nodeexporter-dashboard.yaml
+    - fijnstof-dashboard.yaml
   notify: _restart_grafana
+
+- name: influxdb influxdb.conf
+  template:
+    src: influxdb.conf.j2
+    dest: /var/lib/dsm/influxdb/config/influxdb.conf
+    owner: 0
+    group: 0
+    mode: 0666
+  become: true
+  notify: _restart_influxdb
 
 - name: create pod
   containers.podman.podman_pod:
@@ -151,6 +170,7 @@
     ports:
       - 3000:3000
       - 8080:8080
+      - 8086:8086
       - 9090:9090
       - 9093:9093
       - 9100:9100
@@ -170,7 +190,6 @@
     pod: dsm
     command: '-device /dev/ttyUSB0'
     state: present
-    # userns: keep-id
     recreate: yes
     expose: 8080
     generate_systemd:
@@ -186,11 +205,9 @@
     image: quay.io/prometheus/node-exporter:v1.2.2
     pod: dsm
     pid: host
-    # network: host
     command: '--path.rootfs=/host'
     state: present
     user: 65534
-    #userns: keep-id
     recreate: yes
     expose: 9090
     volume:
@@ -216,7 +233,6 @@
     pod: dsm
     state: present
     user: 65534
-    #userns: keep-id
     recreate: yes
     expose: 9090
     volume:
@@ -239,11 +255,34 @@
     pod: dsm
     state: present
     user: 65534
-    #userns: keep-id
     recreate: yes
     expose: 9093
     volume:
       - /var/lib/dsm/alertmanager:/etc/alertmanager:z
+    generate_systemd:
+      path: /etc/systemd/system
+      restart_policy: on-failure
+      time: 120
+      names: true
+  become: true
+
+- name: create influxdb container
+  containers.podman.podman_container:
+    name: influxdb
+    image: docker.io/influxdb:1.8.10
+    command: '-config=/etc/influxdb/influxdb.conf'
+    pod: dsm
+    env:
+      INFLUXDB_ADMIN_USER=influxdb
+      INFLUXDB_ADMIN_PASSWORD={{_influxdb_password}}
+      INFLUXDB_DB=luftdaten
+    state: present
+    user: 0
+    recreate: yes
+    expose: 8086
+    volume:
+      - /var/lib/dsm/influxdb/data:/var/lib/influxdb:Z
+      - /var/lib/dsm/influxdb/config/influxdb.conf:/etc/influxdb/influxdb.conf:Z
     generate_systemd:
       path: /etc/systemd/system
       restart_policy: on-failure
@@ -258,7 +297,6 @@
     pod: dsm
     state: present
     user: 472
-#    userns: keep-id
     recreate: yes
     expose: 3000
     volume:
@@ -271,82 +309,32 @@
       names: true
   become: true
 
-- name: start and enable container-dsm-exporter.service
+- name: start and enable services
   systemd:
-    name: container-dsm-exporter
+    name: "{{item}}"
     state: started
     daemon_reload: true
     enabled: true
+  loop:
+    - container-dsm-exporter
+    - container-node-exporter
+    - container-prometheus
+    - container-alertmanager
+    - container-influxdb
+    - container-grafana
   become: true
 
-- name: start and enable container-node-exporter.service
-  systemd:
-    name: container-node-exporter
-    state: started
-    enabled: true
-  become: true
-
-- name: start and enable container-prometheus.service
-  systemd:
-    name: container-prometheus
-    state: started
-    enabled: true
-  become: true
-
-- name: start and enable container-grafana.service
-  systemd:
-    name: container-grafana
-    state: started
-    enabled: true
-  become: true
-
-- name: start and enable container-alertmanager.service
-  systemd:
-    name: container-alertmanager
-    state: started
-    enabled: true
-  become: true
-
-- name: node-exporter container state
+- name: container state
   shell: |
-    podman ps -a --format "{{ '{{' }}.Status{{ '}}' }}  {{ '{{' }}.Names{{ '}}' }}  {{ '{{' }}.ID{{ '}}' }}" --filter 'name=node-exporter'
+    podman ps -a --format "{{ '{{' }}.Status{{ '}}' }}  {{ '{{' }}.Names{{ '}}' }}  {{ '{{' }}.ID{{ '}}' }}" --filter 'name={{item}}'
   register: _container_state
-  become: true
-
-- debug:
-    var: _container_state
-
-- name: dsm-exporter container state
-  shell: |
-    podman ps -a --format "{{ '{{' }}.Status{{ '}}' }}  {{ '{{' }}.Names{{ '}}' }}  {{ '{{' }}.ID{{ '}}' }}" --filter 'name=dsm-exporter'
-  register: _container_state
-  become: true
-
-- debug:
-    var: _container_state
-
-- name: prometheus container state
-  shell: |
-    podman ps -a --format "{{ '{{' }}.Status{{ '}}' }}  {{ '{{' }}.Names{{ '}}' }}  {{ '{{' }}.ID{{ '}}' }}" --filter 'name=prometheus'
-  register: _container_state
-  become: true
-
-- debug:
-    var: _container_state
-
-- name: alertmanager container state
-  shell: |
-    podman ps -a --format "{{ '{{' }}.Status{{ '}}' }}  {{ '{{' }}.Names{{ '}}' }}  {{ '{{' }}.ID{{ '}}' }}" --filter 'name=alertmanager'
-  register: _container_state
-  become: true
-
-- debug:
-    var: _container_state
-
-- name: grafana container state
-  shell: |
-    podman ps -a --format "{{ '{{' }}.Status{{ '}}' }}  {{ '{{' }}.Names{{ '}}' }}  {{ '{{' }}.ID{{ '}}' }}" --filter 'name=grafana'
-  register: _container_state
+  loop:
+    - dsm-exporter
+    - node-exporter
+    - prometheus
+    - alertmanager
+    - influxdb
+    - grafana
   become: true
 
 - debug:

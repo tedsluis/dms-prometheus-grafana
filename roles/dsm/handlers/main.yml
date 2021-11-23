@@ -61,6 +61,21 @@
     state: started
   become: true
 
+- name: stop container-influxdb.service
+  listen: _restart_influxdb
+  systemd:
+    name: container-influxdb
+    state: stopped
+    daemon_reload: true
+  become: true
+  
+- name: start container-influxdb.service
+  listen: _restart_influxdb
+  systemd:
+    name: container-influxdb
+    state: started
+  become: true
+
 - name: stop container-grafana.service
   listen: _restart_grafana
   systemd:

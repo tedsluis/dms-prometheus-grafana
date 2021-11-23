@@ -1,0 +1,13 @@
+aapiVersion: 1
+
+datasources:
+  - name: InfluxDB_v1
+    type: influxdb
+    access: proxy
+    database: luftdaten
+    user: influxdb
+    url: http://localhost:8086
+    jsonData:
+      httpMode: GET
+    secureJsonData:
+      password: '{{_influxdb_password}}'
