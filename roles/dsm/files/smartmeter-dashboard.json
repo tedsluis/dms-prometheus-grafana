@@ -22,7 +22,7 @@
   "fiscalYearStartMonth": 0,
   "gnetId": null,
   "graphTooltip": 1,
-  "id": 2,
+  "id": 9,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -282,7 +282,9 @@
       "type": "gauge"
     },
     {
-      "aliasColors": {},
+      "aliasColors": {
+        "gemiddelde": "dark-red"
+      },
       "bars": false,
       "dashLength": 10,
       "dashes": false,
@@ -345,6 +347,14 @@
           "interval": "",
           "legendFormat": "nromale uren",
           "refId": "C"
+        },
+        {
+          "exemplar": true,
+          "expr": "avg_over_time(gotsmart_active_power_delivered_l1_kw[$__range])",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "gemiddelde",
+          "refId": "A"
         }
       ],
       "thresholds": [],
@@ -967,7 +977,9 @@
       "type": "gauge"
     },
     {
-      "aliasColors": {},
+      "aliasColors": {
+        "{device=\"4530303433303037303435303838353138\", instance=\"localhost:8080\", job=\"dsm-exporter\", version=\"50\"}": "dark-red"
+      },
       "bars": false,
       "dashLength": 10,
       "dashes": false,
@@ -1020,8 +1032,24 @@
           "expr": "rate(gotsmart_gas_usage_m3[60m])",
           "hide": false,
           "interval": "",
-          "legendFormat": "verbruik per uur",
+          "legendFormat": "verbruik afgelopen uur",
           "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "rate(gotsmart_gas_usage_m3[1d])",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "verbuik afgelopen dag",
+          "refId": "B"
+        },
+        {
+          "exemplar": true,
+          "expr": "rate(gotsmart_gas_usage_m3[1w])",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "verbruik afgelopen week",
+          "refId": "C"
         }
       ],
       "thresholds": [],
@@ -1981,7 +2009,7 @@
     "list": []
   },
   "time": {
-    "from": "now-24h",
+    "from": "now-7d",
     "to": "now"
   },
   "timepicker": {
@@ -2012,5 +2040,5 @@
   "timezone": "",
   "title": "Smartmeter",
   "uid": "m-EWEjRgk",
-  "version": 11
+  "version": 3
 }
