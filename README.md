@@ -70,58 +70,58 @@ root@dsm ~]# stty -F /dev/ttyUSB0 115200
 
 ### resources
 
-* de slimme meter exporter gotsmart: https://github.com/Nozzie/gotsmart
+* de slimme meter exporter gotsmart: https://raw.githubusercontent.com/Nozzie/gotsmart
 
 ### grafana dashboard
 
-<a href="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard1.png"
- target="_blank"><img src="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard1.png"
+<a href="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard1.png"
+ target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard1.png"
 alt="dashboard1" width="800" height=auto border="10" /></a><br>
 
-<a href="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard2.png"
- target="_blank"><img src="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard2.png"
+<a href="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard2.png"
+ target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard2.png"
 alt="dashboard2" width="800" height=auto border="10" /></a><br>
 
-<a href="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard3.png"
- target="_blank3"><img src="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard3.png"
+<a href="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard3.png"
+ target="_blank3"><img src="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard3.png"
 alt="dashboard" width="800" height=auto border="10" /></a><br>
 
-<a href="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard4.png"
- target="_blank"><img src="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard4.png"
+<a href="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard4.png"
+ target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard4.png"
 alt="dashboard4" width="800" height=auto border="10" /></a><br>
 
-<a href="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard5.png"
- target="_blank"><img src="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard5.png"
+<a href="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard5.png"
+ target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard5.png"
 alt="dashboard5" width="800" height=auto border="10" /></a><br>
 
-<a href="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard6.png"
- target="_blank"><img src="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard6.png"
+<a href="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard6.png"
+ target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard6.png"
 alt="dashboard6" width="800" height=auto border="10" /></a><br>
 
-<a href="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard7.png"
- target="_blank"><img src="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard7.png"
+<a href="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard7.png"
+ target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard7.png"
 alt="dashboard7" width="800" height=auto border="10" /></a><br>
 
-<a href="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard8.png"
- target="_blank"><img src="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard8.png"
+<a href="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard8.png"
+ target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard8.png"
 alt="dashboard8" width="800" height=auto border="10" /></a><br>
 
-<a href="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard9.png"
- target="_blank"><img src="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard9.png"
+<a href="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard9.png"
+ target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard9.png"
 alt="dashboard9" width="800" height=auto border="10" /></a><br>
 
-<a href="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard10.png"
- target="_blank"><img src="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard10.png"
+<a href="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard10.png"
+ target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard10.png"
 alt="dashboard10" width="800" height=auto border="10" /></a><br>
 
-<a href="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard11.png"
- target="_blank"><img src="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard11.png"
+<a href="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard11.png"
+ target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard11.png"
 alt="dashboard11" width="800" height=auto border="10" /></a><br>
 
-<a href="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard12.png"
- target="_blank"><img src="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard12.png"
+<a href="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard12.png"
+ target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard12.png"
 alt="dashboard12" width="800" height=auto border="10" /></a><br>
 
-<a href="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard13.png"
- target="_blank"><img src="https://github.com/tedsluis/dsm-prometheus-grafana/main/media/dashboard13.png"
+<a href="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard13.png"
+ target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard13.png"
 alt="dashboard13" width="800" height=auto border="10" /></a><br>
