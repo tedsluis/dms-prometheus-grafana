@@ -31,7 +31,7 @@ provisioning = /etc/grafana/provisioning
 #################################### Server ####################################
 [server]
 # Protocol (http, https, h2, socket)
-protocol = http
+protocol = https
 
 # The ip address to bind to, empty will bind to all interfaces
 http_addr = 0.0.0.0
@@ -63,8 +63,8 @@ domain = {{inventory_hostname}}
 ;enable_gzip = false
 
 # https certs & key file
-# cert_file =/etc/grafana/certs/fullchain.pem
-# cert_key =/etc/grafana/certs/privkey.pem
+cert_file =/etc/grafana/certs/certificate.pem
+cert_key =/tmp/certificate-without-passphrase.key 
 
 # Unix socket path
 ;socket =
@@ -502,7 +502,7 @@ login_cookie_name = grafana_session
 ;mode = console file
 
 # Either "debug", "info", "warn", "error", "critical", default is "info"
-;level = info
+;level = debug
 
 # optional settings to set different levels for specific loggers. Ex filters = sqlstore:debug
 ;filters =
