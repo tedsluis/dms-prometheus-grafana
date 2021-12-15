@@ -20,6 +20,26 @@
 * slimme meter
 * P1 kabel
 
+### Prepare deployment
+
+Replace encrypted ansible-vault secrets with your own.
+
+
+```bash
+$ ansible-vault encrypt_string 'mypassword' -n _privatekey_passphrase
+_privatekey_passphrase: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          61613566393936313337636339663961346435663330643034656632336265313938373436306634
+          3339623864386531633637643935353433343766366433350a383365376235303434313233616632
+          33303065393838346130383264386539656231303866653336353231373636386266633034633161
+          3839613236366138310a356435613931636466613033306436336561393163636135386363383230
+          3838
+Encryption successful
+```
+
+ ansible all -m shell -a  'echo "{{_privatekey_passphrase}}"' -e@roles/dsm/defaults/main.yml
+
+
 ### deploy
 
 ```bash
