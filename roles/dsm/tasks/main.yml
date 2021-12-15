@@ -40,6 +40,7 @@
     - { directory: "/var/lib/dsm/influxdb"                            ,owner: "0"     ,group: "0"     ,mode: "0775" }
     - { directory: "/var/lib/dsm/influxdb/data"                       ,owner: "0"     ,group: "0"     ,mode: "0775" }
     - { directory: "/var/lib/dsm/influxdb/config"                     ,owner: "0"     ,group: "0"     ,mode: "0775" }
+    - { directory: "/var/lib/dsm/certs"                               ,owner: "0"     ,group: "0"     ,mode: "0775" }
 
 - name: Pull images
   containers.podman.podman_image:
@@ -72,6 +73,74 @@
     path: /var/lib/dsm/dsm-exporter
   become: true
 
+- name: Create private key (RSA) with password protection
+  community.crypto.openssl_privatekey:
+    path: /var/lib/dsm/certs/certificate.key
+    type: RSA
+    size: 4096
+    passphrase: "{{ _privatekey_passphrase }}"
+    cipher: auto
+    owner: root
+    group: root
+    mode: 0444
+  register: _res
+  become: true
+
+- name: Create certificate signing request (CSR) for self-signed certificate
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: /var/lib/dsm/certs/certificate.key
+    privatekey_passphrase: "{{ _privatekey_passphrase }}"
+    common_name: dsm
+    organization_name: de slimme meter.
+    country_name: NL
+    email_address: ted.sluis@gmail.com
+    organization_name: bachstraat20
+    organizational_unit_name: bachstraat20
+    subject_alt_name:
+      - "DNS:localhost"
+      - "DNS:{{ inventory_hostname }}"
+      - "DNS:{{ ansible_fqdn }}"
+      - "DNS:{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+  register: _csr
+  become: true
+
+- name: Get information on generated key
+  community.crypto.openssl_privatekey_info:
+    path: /var/lib/dsm/certs/certificate.key
+    passphrase: "{{ _privatekey_passphrase }}"
+  register: _private_key
+  become: true
+
+- name: Create self-signed certificate from CSR
+  community.crypto.x509_certificate:
+    path: /var/lib/dsm/certs/certificate.pem
+    csr_content: "{{ _csr.csr }}"
+    privatekey_path: /var/lib/dsm/certs/certificate.key
+    privatekey_passphrase: "{{ _privatekey_passphrase }}"
+    provider: selfsigned
+    owner: root
+    group: root
+    mode: 0444
+  become: true
+
+- name: Generate PKCS#12 file
+  community.crypto.openssl_pkcs12:
+    action: export
+    path: /var/lib/dsm/certs/certificate.p12
+    friendly_name: dsm
+    privatekey_passphrase: "{{ _privatekey_passphrase }}"
+    passphrase: "{{ _privatekey_passphrase }}"
+    privatekey_path: /var/lib/dsm/certs/certificate.key
+    certificate_path: /var/lib/dsm/certs/certificate.pem
+    state: present
+  become: true
+
+- name: get p12 cert
+  fetch:
+    src: /var/lib/dsm/certs/certificate.p12
+    dest: /tmp/certificate.p12
+  become: true
+
 - name: create /var/lib/dsm/prometheus/config/rules/rules.yml
   copy:
     src: rules.yml
@@ -102,13 +171,30 @@
   become: true
   notify: _restart_alertmanager
 
-- name: create /var/lib/dsm/grafana/etc/grafana.ini
+- name: create grafana.in and create-privatekey-without-passphrase-and-run-grafana.sh /var/lib/dsm/grafana/etc/
   template:
-    src: grafana.ini.j2
-    dest: /var/lib/dsm/grafana/etc/grafana.ini
+    src: "{{item.file}}.j2"
+    dest: /var/lib/dsm/grafana/etc/{{item.file}}
     owner: 472
     group: 472
-    mode: 0666
+    mode: "{{item.mode}}"
+  loop:
+    - { file: "grafana.ini", mode: '0660' } 
+    - { file: 'create-privatekey-without-passphrase-and-run-grafana.sh', mode: '0770' }
+  become: true
+  notify: _restart_grafana
+
+- name: copy grafana certificate and key with passphrase
+  copy:
+    src: /var/lib/dsm/certs/certificate.{{item}}
+    dest: /var/lib/dsm/grafana/etc/certs/certificate.{{item}}
+    remote_src: yes
+    owner: 472
+    group: 472
+    mode: 0440
+  loop:
+    - key
+    - pem
   become: true
   notify: _restart_grafana
 
@@ -195,7 +281,6 @@
     generate_systemd:
       path: /etc/systemd/system
       restart_policy: on-failure
-      time: 120
       names: true
   become: true
   
@@ -215,7 +300,6 @@
     generate_systemd:
       path: /etc/systemd/system
       restart_policy: on-failure
-      time: 120
       names: true
   become: true
 
@@ -241,7 +325,6 @@
     generate_systemd:
       path: /etc/systemd/system
       restart_policy: on-failure
-      time: 120
       names: true
   become: true
 
@@ -262,7 +345,6 @@
     generate_systemd:
       path: /etc/systemd/system
       restart_policy: on-failure
-      time: 120
       names: true
   become: true
 
@@ -286,7 +368,6 @@
     generate_systemd:
       path: /etc/systemd/system
       restart_policy: on-failure
-      time: 120
       names: true
   become: true
 
@@ -299,13 +380,13 @@
     user: 472
     recreate: yes
     expose: 3000
+    entrypoint: /etc/grafana/create-privatekey-without-passphrase-and-run-grafana.sh
     volume:
       - /var/lib/dsm/grafana/etc:/etc/grafana:z
       - /var/lib/dsm/grafana/lib:/var/lib/grafana:z
     generate_systemd:
       path: /etc/systemd/system
       restart_policy: on-failure
-      time: 180
       names: true
   become: true
 
@@ -345,9 +426,10 @@
 
 - name: "pause until grafana is reachable"
   uri:
-    url: "http://{{inventory_hostname}}:3000/login"
+    url: "https://{{inventory_hostname}}:3000/login"
     follow_redirects: none
     method: GET
+    validate_certs: no
   register: _result
   until: _result.status == 200
   retries: 100 # 60 * 5 seconds = 5 minutes
