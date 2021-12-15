@@ -22,7 +22,7 @@
   "fiscalYearStartMonth": 0,
   "gnetId": null,
   "graphTooltip": 1,
-  "id": 9,
+  "id": 4,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -1530,8 +1530,8 @@
           "format": "volt",
           "label": null,
           "logBase": 1,
-          "max": "240",
-          "min": "215",
+          "max": null,
+          "min": null,
           "show": true
         },
         {
@@ -2040,5 +2040,5 @@
   "timezone": "",
   "title": "Smartmeter",
   "uid": "m-EWEjRgk",
-  "version": 3
+  "version": 2
 }
