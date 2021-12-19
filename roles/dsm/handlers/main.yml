@@ -1,6 +1,5 @@
 ---
 
-
 - name: stop container-dsm-exporter.service
   listen: _restart_dsm-exporter
   systemd:

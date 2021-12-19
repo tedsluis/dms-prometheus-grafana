@@ -42,35 +42,121 @@
     - { directory: "/var/lib/dsm/influxdb/config"                     ,owner: "0"     ,group: "0"     ,mode: "0775" }
     - { directory: "/var/lib/dsm/certs"                               ,owner: "0"     ,group: "0"     ,mode: "0775" }
 
-- name: Pull images
-  containers.podman.podman_image:
-    name: "{{item}}"
-  loop:
-    - quay.io/prometheus/prometheus:v2.31.0
-    - docker.io/grafana/grafana:8.2.3
-    - quay.io/prometheus/alertmanager:v0.23.0
-    - quay.io/prometheus/node-exporter:v1.2.2
-    - docker.io/alpine:3.13
-    - docker.io/golang:1.16-alpine
-    - docker.io/influxdb:1.8.10
-  register: _image_pull
+# - name: Pull images
+#   containers.podman.podman_image:
+#     name: "{{item}}"
+#   loop:
+#     - quay.io/prometheus/prometheus:v2.31.0
+#     - docker.io/grafana/grafana:8.2.3
+#     - quay.io/prometheus/alertmanager:v0.23.0
+#     - quay.io/prometheus/node-exporter:v1.2.2
+#     - docker.io/alpine:3.13
+#     - docker.io/golang:1.16-alpine
+#     - docker.io/influxdb:1.8.10
+#   register: _image_pull
+#   become: true
+
+# - debug:
+#     var: _image_pull
+
+# - name: git clone https://github.com/Nozzie/gotsmart.git
+#   ansible.builtin.git:
+#     repo: 'https://github.com/Nozzie/gotsmart.git'
+#     dest: /var/lib/dsm/dsm-exporter
+#     version: master
+#     force: yes
+#   become: true
+
+# - name: Build dsm-exporter image
+#   containers.podman.podman_image:
+#     name: dsm-exporter
+#     path: /var/lib/dsm/dsm-exporter
   become: true
 
-- debug:
-    var: _image_pull
+# create ca
 
-- name: git clone https://github.com/Nozzie/gotsmart.git
-  ansible.builtin.git:
-    repo: 'https://github.com/Nozzie/gotsmart.git'
-    dest: /var/lib/dsm/dsm-exporter
-    version: master
-    force: yes
+- name: Create CA private key with password protection
+  community.crypto.openssl_privatekey:
+    path: /var/lib/dsm/certs/ca-certificate.key
+    passphrase: "{{ _privatekey_passphrase }}"
+    cipher: auto
+    size: 4096
+    owner: root
+    group: root
+    mode: 0444
   become: true
 
-- name: Build dsm-exporter image
-  containers.podman.podman_image:
-    name: dsm-exporter
-    path: /var/lib/dsm/dsm-exporter
+- name: Create certificate signing request (CSR) for root CA certificate
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: /var/lib/dsm/certs/ca-certificate.key
+    privatekey_passphrase: "{{ _privatekey_passphrase }}"
+    common_name: dsm
+    organization_name: de slimme meter.
+    country_name: NL
+    email_address: ted.sluis@gmail.com
+    organization_name: bachstraat20
+    organizational_unit_name: bachstraat20
+    use_common_name_for_san: false  # since we do not specify SANs, don't use CN as a SAN
+    basic_constraints:
+      - 'CA:TRUE'
+    basic_constraints_critical: yes
+    key_usage:
+      - keyCertSign
+    key_usage_critical: true
+  register: _ca_csr
+  become: true
+
+- name: Create self-signed root CA certificate from CSR
+  community.crypto.x509_certificate:
+    path: /var/lib/dsm/certs/ca-certificate.pem
+    csr_content: "{{ _ca_csr.csr }}"
+    privatekey_path: /var/lib/dsm/certs/ca-certificate.key
+    privatekey_passphrase: "{{ _privatekey_passphrase }}"
+    provider: selfsigned
+    owner: root
+    group: root
+    mode: 0444
+  become: true
+
+- name: fetch root CA cert to localhost
+  fetch:
+    src: /var/lib/dsm/certs/ca-certificate.pem
+    dest: /tmp/
+    flat: yes
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+
+- name: copy root CA cert to /etc/pki/ca-trust/source/anchors/ on localhost
+  copy:
+    src: /tmp/ca-certificate.pem
+    dest:  /etc/pki/ca-trust/source/anchors/
+    owner: root
+    group: root
+    mode: 0644
+  delegate_to: localhost
+  become: true
+
+- name: update CA trust on localhost
+  shell: |
+    /usr/bin/update-ca-trust
+  delegate_to: localhost
+  become: true
+
+- name: copy root CA cert to /etc/pki/ca-trust/source/anchors/
+  copy:
+    src: /var/lib/dsm/certs/ca-certificate.pem
+    remote_src: yes
+    dest:  /etc/pki/ca-trust/source/anchors/
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+
+- name: update CA trust
+  shell: |
+    /usr/bin/update-ca-trust
   become: true
 
 - name: Create private key (RSA) with password protection
@@ -83,7 +169,6 @@
     owner: root
     group: root
     mode: 0444
-  register: _res
   become: true
 
 - name: Create certificate signing request (CSR) for self-signed certificate
@@ -104,41 +189,42 @@
   register: _csr
   become: true
 
-- name: Get information on generated key
-  community.crypto.openssl_privatekey_info:
-    path: /var/lib/dsm/certs/certificate.key
-    passphrase: "{{ _privatekey_passphrase }}"
-  register: _private_key
+- name: Check whether certificate exists
+  stat:
+    path: /var/lib/dsm/certs/certificate.pem
+  run_once: true
+  register: _certificate_exists
   become: true
 
-- name: Create self-signed certificate from CSR
-  community.crypto.x509_certificate:
-    path: /var/lib/dsm/certs/certificate.pem
+- name: Read existing certificate if exists
+  slurp:
+    src: /var/lib/dsm/certs/certificate.pem
+  when: _certificate_exists.stat.exists
+  run_once: true
+  register: _certificate
+  become: true
+
+- name: Sign certificate with our CA
+  community.crypto.x509_certificate_pipe:
+    content: "{{ (_certificate.content | b64decode) if _certificate_exists.stat.exists else omit }}"
     csr_content: "{{ _csr.csr }}"
-    privatekey_path: /var/lib/dsm/certs/certificate.key
-    privatekey_passphrase: "{{ _privatekey_passphrase }}"
-    provider: selfsigned
+    provider: ownca
+    ownca_path: /var/lib/dsm/certs/ca-certificate.pem
+    ownca_privatekey_path: /var/lib/dsm/certs/ca-certificate.key
+    ownca_privatekey_passphrase: "{{ _privatekey_passphrase }}"
+    ownca_not_after: +1500d  # valid for one year
+    ownca_not_before: "-1d"  # valid since yesterday
+  register: _certificate
+  become: true
+
+- name: Write certificate file
+  copy:
+    dest: /var/lib/dsm/certs/certificate.pem
+    content: "{{ _certificate.certificate }}"
     owner: root
     group: root
     mode: 0444
-  become: true
-
-- name: Generate PKCS#12 file
-  community.crypto.openssl_pkcs12:
-    action: export
-    path: /var/lib/dsm/certs/certificate.p12
-    friendly_name: dsm
-    privatekey_passphrase: "{{ _privatekey_passphrase }}"
-    passphrase: "{{ _privatekey_passphrase }}"
-    privatekey_path: /var/lib/dsm/certs/certificate.key
-    certificate_path: /var/lib/dsm/certs/certificate.pem
-    state: present
-  become: true
-
-- name: get p12 cert
-  fetch:
-    src: /var/lib/dsm/certs/certificate.p12
-    dest: /tmp/certificate.p12
+  when: _certificate is changed
   become: true
 
 - name: create /var/lib/dsm/prometheus/config/rules/rules.yml
@@ -429,7 +515,6 @@
     url: "https://{{inventory_hostname}}:3000/login"
     follow_redirects: none
     method: GET
-    validate_certs: no
   register: _result
   until: _result.status == 200
   retries: 100 # 60 * 5 seconds = 5 minutes
