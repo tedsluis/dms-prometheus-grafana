@@ -24,6 +24,7 @@
     - { directory: "/var/lib/dsm/prometheus/config"                   ,owner: "65534" ,group: "65534" ,mode: "0775" }
     - { directory: "/var/lib/dsm/prometheus/config/rules"             ,owner: "65534" ,group: "65534" ,mode: "0775" }
     - { directory: "/var/lib/dsm/prometheus/config/targets"           ,owner: "65534" ,group: "65534" ,mode: "0775" }
+    - { directory: "/var/lib/dsm/prometheus/certs"                    ,owner: "65534" ,group: "65534" ,mode: "0775" }
     - { directory: "/var/lib/dsm/grafana"                             ,owner: "472"   ,group: "472"   ,mode: "0775" }
     - { directory: "/var/lib/dsm/grafana/etc"                         ,owner: "472"   ,group: "472"   ,mode: "0775" }
     - { directory: "/var/lib/dsm/grafana/etc/certs"                   ,owner: "472"   ,group: "472"   ,mode: "0775" }
@@ -148,12 +149,21 @@
   copy:
     src: /var/lib/dsm/certs/ca-certificate.pem
     remote_src: yes
-    dest:  /etc/pki/ca-trust/source/anchors/
-    owner: root
-    group: root
-    mode: 0644
+    dest:  "{{item.path}}"
+    owner: "{{item.owner}}"
+    group: "{{item.group}}"
+    mode: "{{item.mode}}"
+  loop:
+    - { owner: 'root', group: 'root', mode: '0644', path: '/etc/pki/ca-trust/source/anchors/' }
+    - { owner: '472', group: '472', mode: '0644', path: '/var/lib/dsm/grafana/certs/' }
+    - { owner: '65534', group: '65534', mode: '0644', path: '/var/lib/dsm/prometheus/certs/' }
   become: true
 
+- name: get CA cert
+  ansible.builtin.slurp:
+    src: /var/lib/dsm/grafana/certs/ca-certificate.pem
+  register: _cacert
+    
 - name: update CA trust
   shell: |
     /usr/bin/update-ca-trust
@@ -183,6 +193,7 @@
     organizational_unit_name: bachstraat20
     subject_alt_name:
       - "DNS:localhost"
+      - "DNS:127.0.0.1"
       - "DNS:{{ inventory_hostname }}"
       - "DNS:{{ ansible_fqdn }}"
       - "DNS:{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
@@ -247,6 +258,18 @@
   become: true
   notify: _restart_prometheus
 
+- name: copy prometheus web-config.yml
+  copy:
+    content: |
+      tls_server_config:
+        cert_file: /etc/ssl/certs/certificate.pem
+        key_file: /etc/ssl/certs/certificate.key
+    dest: /var/lib/dsm/prometheus/config/web-config.yml
+    owner: 65534
+    group: 65534
+    mode: 0664
+  become: true
+
 - name: create /var/lib/dsm/alertmanager/alertmanager.yml
   template:
     src: alertmanager.yml.j2
@@ -257,32 +280,38 @@
   become: true
   notify: _restart_alertmanager
 
-- name: create grafana.in and create-privatekey-without-passphrase-and-run-grafana.sh /var/lib/dsm/grafana/etc/
-  template:
-    src: "{{item.file}}.j2"
-    dest: /var/lib/dsm/grafana/etc/{{item.file}}
-    owner: 472
-    group: 472
-    mode: "{{item.mode}}"
-  loop:
-    - { file: "grafana.ini", mode: '0660' } 
-    - { file: 'create-privatekey-without-passphrase-and-run-grafana.sh', mode: '0770' }
-  become: true
-  notify: _restart_grafana
-
-- name: copy grafana certificate and key with passphrase
+- name: copy certificate
   copy:
-    src: /var/lib/dsm/certs/certificate.{{item}}
-    dest: /var/lib/dsm/grafana/etc/certs/certificate.{{item}}
+    src: /var/lib/dsm/certs/certificate.pem
+    dest: "{{item.path}}/"
     remote_src: yes
+    owner: "{{item.owner}}"
+    group: "{{item.group}}"
+    mode: 0640
+  loop:
+    - { owner: '472', group: '472', path: '/var/lib/dsm/grafana/etc/certs' }
+    - { owner: '65534', group: '65534', path: '/var/lib/dsm/prometheus/certs' }
+  become: true
+
+- name: copy key and remove passphrase
+  shell: |
+    /usr/bin/openssl rsa -in /var/lib/dsm/certs/certificate.key -out {{ item.path }}/certificate.key -passin pass:{{_privatekey_passphrase}}
+    chown {{item.owner}}:{{item.group}} {{item.path}}/certificate.key
+    chmod 640 {{item.path}}/certificate.key
+  loop:
+    - { owner: '472', group: '472', path: '/var/lib/dsm/grafana/etc/certs' }
+    - { owner: '65534', group: '65534', path: '/var/lib/dsm/prometheus/certs' }
+  become: true
+
+- name: create grafana.in /var/lib/dsm/grafana/etc/
+  template:
+    src: grafana.ini.j2
+    dest: /var/lib/dsm/grafana/etc/grafana.ini
     owner: 472
     group: 472
-    mode: 0440
-  loop:
-    - key
-    - pem
+    mode: 0660
   become: true
-  notify: _restart_grafana
+
 
 - name: create /var/lib/dsm/grafana/etc/provisioning/datasources/
   template:
@@ -400,6 +429,8 @@
       - '--web.console.templates=/usr/share/prometheus/consoles'
       - '--storage.tsdb.retention.time=1500d'
       - '--storage.tsdb.retention.size=15GB'
+      - '--web.config.file=/etc/prometheus/web-config.yml'
+      - '--web.external-url=https://dsm/'
     pod: dsm
     state: present
     user: 65534
@@ -408,6 +439,9 @@
     volume:
       - /var/lib/dsm/prometheus/config:/etc/prometheus:z
       - /var/lib/dsm/prometheus/data:/prometheus:z
+      - /var/lib/dsm/prometheus/certs/certificate.pem:/etc/ssl/certs/certificate.pem:z
+      - /var/lib/dsm/prometheus/certs/certificate.key:/etc/ssl/certs/certificate.key:z
+      - /var/lib/dsm/prometheus/certs/ca-certificate.pem:/etc/ssl/certs/ca-certificate.pem:z
     generate_systemd:
       path: /etc/systemd/system
       restart_policy: on-failure
@@ -466,7 +500,6 @@
     user: 472
     recreate: yes
     expose: 3000
-    entrypoint: /etc/grafana/create-privatekey-without-passphrase-and-run-grafana.sh
     volume:
       - /var/lib/dsm/grafana/etc:/etc/grafana:z
       - /var/lib/dsm/grafana/lib:/var/lib/grafana:z

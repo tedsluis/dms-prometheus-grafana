@@ -1,5 +1,0 @@
-#!/bin/bash
-if [ ! -f /tmp/certificate-without-passphrase.key ]; then
-  /usr/bin/openssl rsa -in /etc/grafana/certs/certificate.key -out /tmp/certificate-without-passphrase.key -passin pass:{{_privatekey_passphrase}}
-fi
-/run.sh
