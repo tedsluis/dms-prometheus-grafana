@@ -48,11 +48,12 @@ Encryption successful
 
 ### End points
 
-* grafana: http://dsm:3000
-* prometheus: http://dsm:9090
-* node exporter: http://dsm:9100/metrics
+* grafana: https://dsm:3000
+* prometheus: https://dsm:9090
+* node exporter: https://dsm:9100/metrics
 * dsm exporter: http://dsm:8080/metrics
-* alertmanager: http://dsm:9093
+* alertmanager: https://dsm:9093
+* karma: https://dsm:8081/metrics
 
 ### debug USB to serial cable to connect to the smart meter
 
