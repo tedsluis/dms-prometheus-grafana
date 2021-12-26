@@ -7,7 +7,10 @@ global:
 # Alertmanager configuration..
 alerting:
   alertmanagers:
-  - static_configs:
+  - scheme: https
+    tls_config:
+      ca_file: /etc/ssl/certs/ca-certificate.pem
+    static_configs:
     - targets:
        - localhost:9093
 
@@ -20,19 +23,39 @@ rule_files:
 # Here it's Prometheus itself.
 scrape_configs:
 
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+
   # node-exporter
   - job_name: node
+    scheme: https
+    tls_config:
+      ca_file: /etc/ssl/certs/ca-certificate.pem
     static_configs:
     - targets: ['localhost:9100']
 
-
-  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
   - job_name: 'prometheus'
     # metrics_path defaults to '/metrics'
-    # scheme defaults to 'http'.
+    scheme: https
+    tls_config:
+      ca_file: /etc/ssl/certs/ca-certificate.pem
     static_configs:
     - targets: ['localhost:9090']
 
+  - job_name: 'alertmanager'
+    # metrics_path defaults to '/metrics'
+    scheme: https
+    tls_config:
+      ca_file: /etc/ssl/certs/ca-certificate.pem
+    static_configs:
+    - targets: ['localhost:9093']
+
+  - job_name: 'karma'
+    # metrics_path defaults to '/metrics'
+    scheme: https
+    tls_config:
+      ca_file: /etc/ssl/certs/ca-certificate.pem
+    static_configs:
+    - targets: ['localhost:8081']
 
   # dsm exporter
   - job_name: dsm-exporter
@@ -40,6 +63,3 @@ scrape_configs:
     static_configs:
       - targets: 
         - localhost:8080
-
-
-
