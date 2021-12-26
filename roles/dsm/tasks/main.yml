@@ -38,10 +38,15 @@
     - { directory: "/var/lib/dsm/grafana/usr"                         ,owner: "472"   ,group: "472"   ,mode: "0775" }
     - { directory: "/var/lib/dsm/dsm-exporter"                        ,owner: "root"  ,group: "root"  ,mode: "0775" }
     - { directory: "/var/lib/dsm/alertmanager"                        ,owner: "65534" ,group: "65534" ,mode: "0775" }
+    - { directory: "/var/lib/dsm/alertmanager/certs"                  ,owner: "65534" ,group: "65534" ,mode: "0775" }
     - { directory: "/var/lib/dsm/influxdb"                            ,owner: "0"     ,group: "0"     ,mode: "0775" }
     - { directory: "/var/lib/dsm/influxdb/data"                       ,owner: "0"     ,group: "0"     ,mode: "0775" }
     - { directory: "/var/lib/dsm/influxdb/config"                     ,owner: "0"     ,group: "0"     ,mode: "0775" }
     - { directory: "/var/lib/dsm/certs"                               ,owner: "0"     ,group: "0"     ,mode: "0775" }
+    - { directory: "/var/lib/dsm/nodeexporter"                        ,owner: "65534" ,group: "65534" ,mode: "0775" }
+    - { directory: "/var/lib/dsm/nodeexporter/certs"                  ,owner: "65534" ,group: "65534" ,mode: "0775" }
+    - { directory: "/var/lib/dsm/karma"                               ,owner: "root" ,group: "root" ,mode: "0777" }
+    - { directory: "/var/lib/dsm/karma/certs"                         ,owner: "root" ,group: "root" ,mode: "0777" }
 
 # - name: Pull images
 #   containers.podman.podman_image:
@@ -157,6 +162,8 @@
     - { owner: 'root', group: 'root', mode: '0644', path: '/etc/pki/ca-trust/source/anchors/' }
     - { owner: '472', group: '472', mode: '0644', path: '/var/lib/dsm/grafana/certs/' }
     - { owner: '65534', group: '65534', mode: '0644', path: '/var/lib/dsm/prometheus/certs/' }
+    - { owner: '65534', group: '65534', mode: '0644', path: '/var/lib/dsm/alertmanager/certs/' }
+    - { owner: 'root', group: 'root', mode: '0644', path: '/var/lib/dsm/karma/certs/' }
   become: true
 
 - name: get CA cert
@@ -238,13 +245,20 @@
   when: _certificate is changed
   become: true
 
-- name: create /var/lib/dsm/prometheus/config/rules/rules.yml
+- name: create /var/lib/dsm/prometheus/config/rules/
   copy:
-    src: rules.yml
-    dest: /var/lib/dsm/prometheus/config/rules/rules.yml
+    src: "rules-{{ item }}.yml"
+    dest: /var/lib/dsm/prometheus/config/rules/rules-{{ item }}.yml
     owner: 65534
     group: 65534
     mode: 0664
+  loop:
+    - dsm
+    - linux-server
+    - prometheus
+    - blackbox
+    - alertmanager
+    - karma
   become: true
   notify: _restart_prometheus
 
@@ -269,6 +283,7 @@
     group: 65534
     mode: 0664
   become: true
+  notify: _restart_prometheus
 
 - name: create /var/lib/dsm/alertmanager/alertmanager.yml
   template:
@@ -279,6 +294,33 @@
     mode: 0664
   become: true
   notify: _restart_alertmanager
+
+
+- name: copy alertmanager web-config.yml
+  copy:
+    content: |
+      tls_server_config:
+        cert_file: /etc/ssl/certs/certificate.pem
+        key_file: /etc/ssl/certs/certificate.key
+    dest: /var/lib/dsm/alertmanager/web-config.yml
+    owner: 65534
+    group: 65534
+    mode: 0664
+  become: true
+  notify: _restart_alertmanager
+
+- name: copy node-exporter web-config.yml
+  copy:
+    content: |
+      tls_server_config:
+        cert_file: /etc/ssl/certs/certificate.pem
+        key_file: /etc/ssl/certs/certificate.key
+    dest: /var/lib/dsm/nodeexporter/web-config.yml
+    owner: 65534
+    group: 65534
+    mode: 0664
+  become: true
+  notify: _restart_node_exporter
 
 - name: copy certificate
   copy:
@@ -291,6 +333,9 @@
   loop:
     - { owner: '472', group: '472', path: '/var/lib/dsm/grafana/etc/certs' }
     - { owner: '65534', group: '65534', path: '/var/lib/dsm/prometheus/certs' }
+    - { owner: '65534', group: '65534', path: '/var/lib/dsm/alertmanager/certs' }
+    - { owner: '65534', group: '65534', path: '/var/lib/dsm/nodeexporter/certs' }
+    - { owner: 'root', group: 'root', path: '/var/lib/dsm/karma/certs' }
   become: true
 
 - name: copy key and remove passphrase
@@ -301,7 +346,24 @@
   loop:
     - { owner: '472', group: '472', path: '/var/lib/dsm/grafana/etc/certs' }
     - { owner: '65534', group: '65534', path: '/var/lib/dsm/prometheus/certs' }
+    - { owner: '65534', group: '65534', path: '/var/lib/dsm/alertmanager/certs' }
+    - { owner: '65534', group: '65534', path: '/var/lib/dsm/nodeexporter/certs' }
+    - { owner: 'root', group: 'root', path: '/var/lib/dsm/karma/certs' }
   become: true
+
+- name: chmod
+  shell: chmod 777 -R /var/lib/dsm/karma
+  become: true
+
+- name: create karma.yml /var/lib/dsm/karma/
+  template:
+    src: karma.yml.j2
+    dest: /var/lib/dsm/karma/karma.yml
+    owner: root
+    group: root
+    mode: 0666
+  become: true
+  notify: _restart_karma
 
 - name: create grafana.in /var/lib/dsm/grafana/etc/
   template:
@@ -311,7 +373,7 @@
     group: 472
     mode: 0660
   become: true
-
+  notify: _restart_grafana
 
 - name: create /var/lib/dsm/grafana/etc/provisioning/datasources/
   template:
@@ -335,9 +397,11 @@
     mode: 0666
   become: true
   with_items:
-    - smartmeter-dashboard.json
-    - nodeexporter-dashboard.json
-    - fijnstof-dashboard.json
+    - dashboard-smartmeter.json
+    - dashboard-nodeexporter.json
+    - dashboard-fijnstof.json
+    - dashboard-prometheus.json
+    - dashboard-alertmanager.json
   notify: _restart_grafana
 
 - name: create /var/lib/dsm/grafana/etc/provisioning/dashboards/dashboard.*.yaml
@@ -349,9 +413,11 @@
     mode: 0666
   become: true
   with_items: 
-    - smartmeter-dashboard.yaml
-    - nodeexporter-dashboard.yaml
-    - fijnstof-dashboard.yaml
+    - dashboard-smartmeter.yaml
+    - dashboard-nodeexporter.yaml
+    - dashboard-fijnstof.yaml
+    - dashboard-prometheus.yaml
+    - dashboard-alertmanager.yaml
   notify: _restart_grafana
 
 - name: influxdb influxdb.conf
@@ -375,6 +441,7 @@
       - 9090:9090
       - 9093:9093
       - 9100:9100
+      - 8081:8081
   become: true
 
 - name: set permissions and baud rate
@@ -405,13 +472,18 @@
     image: quay.io/prometheus/node-exporter:v1.2.2
     pod: dsm
     pid: host
-    command: '--path.rootfs=/host'
+    command: 
+      - '--path.rootfs=/host'
+      - '--web.config=/etc/web-config.yml'
     state: present
     user: 65534
     recreate: yes
     expose: 9090
     volume:
       - "/:/host:ro,rslave"
+      - /var/lib/dsm/nodeexporter/web-config.yml:/etc/web-config.yml:z
+      - /var/lib/dsm/nodeexporter/certs/certificate.pem:/etc/ssl/certs/certificate.pem:z
+      - /var/lib/dsm/nodeexporter/certs/certificate.key:/etc/ssl/certs/certificate.key:z
     generate_systemd:
       path: /etc/systemd/system
       restart_policy: on-failure
@@ -455,6 +527,7 @@
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
       - '--storage.path=/alertmanager'
+      - '--web.config.file=/etc/alertmanager/web-config.yml'
     pod: dsm
     state: present
     user: 65534
@@ -462,6 +535,9 @@
     expose: 9093
     volume:
       - /var/lib/dsm/alertmanager:/etc/alertmanager:z
+      - /var/lib/dsm/alertmanager/certs/certificate.pem:/etc/ssl/certs/certificate.pem:z
+      - /var/lib/dsm/alertmanager/certs/certificate.key:/etc/ssl/certs/certificate.key:z
+      - /var/lib/dsm/alertmanager/certs/ca-certificate.pem:/etc/ssl/certs/ca-certificate.pem:z
     generate_systemd:
       path: /etc/systemd/system
       restart_policy: on-failure
@@ -509,6 +585,28 @@
       names: true
   become: true
 
+- name: create karma container
+  containers.podman.podman_container:
+    name: karma
+    image: ghcr.io/prymitive/karma:latest
+    command:
+      - '--config.file=/karma.yml'
+    pod: dsm
+    state: present
+    #user: 
+    recreate: yes
+    expose: 8081
+    volume:
+      - /var/lib/dsm/karma/karma.yml:/karma.yml:z
+      - /var/lib/dsm/karma/certs/certificate.pem:/certificate.pem:z
+      - /var/lib/dsm/karma/certs/certificate.key:/certificate.key:z
+      - /var/lib/dsm/karma/certs/ca-certificate.pem:/ca-certificate.pem:z
+    generate_systemd:
+      path: /etc/systemd/system
+      restart_policy: on-failure
+      names: true
+  become: true
+
 - name: start and enable services
   systemd:
     name: "{{item}}"
@@ -522,6 +620,7 @@
     - container-alertmanager
     - container-influxdb
     - container-grafana
+    - container-karma
   become: true
 
 - name: container state
@@ -535,6 +634,7 @@
     - alertmanager
     - influxdb
     - grafana
+    - karma
   become: true
 
 - debug:
