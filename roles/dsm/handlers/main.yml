@@ -16,7 +16,7 @@
   become: true
 
 - name: stop container-node-exporter.service
-  listen: _restart_node-exporter
+  listen: _restart_node_exporter
   systemd:
     name: container-dsm-exporter
     state: stopped
@@ -90,4 +90,18 @@
     state: started
   become: true
 
+- name: stop container-karma.service
+  listen: _restart_karma
+  systemd:
+    name: container-karma
+    state: stopped
+    daemon_reload: true
+  become: true
+  
+- name: start container-karma.service
+  listen: _restart_karma
+  systemd:
+    name: container-karma
+    state: started
+  become: true
 
