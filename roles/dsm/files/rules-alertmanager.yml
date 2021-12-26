@@ -1,0 +1,11 @@
+groups:
+    - name: alertmanager.rules
+      rules:
+      - alert: alertmanager-down
+        annotations:
+          description: 'alertmanager is down {{ $labels.instance }}'
+          summary: 'alertmanager is down'
+        expr: up{job="alertmanager"} != 1 or absent(up{job="alertmanager"}) ==1
+        for: 1m
+        labels:
+          severity: critical
