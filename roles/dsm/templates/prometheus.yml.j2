@@ -12,7 +12,7 @@ alerting:
       ca_file: /etc/ssl/certs/ca-certificate.pem
     static_configs:
     - targets:
-       - localhost:9093
+      - {{inventory_hostname}}:9093
 
 # Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
 rule_files:
@@ -31,7 +31,8 @@ scrape_configs:
     tls_config:
       ca_file: /etc/ssl/certs/ca-certificate.pem
     static_configs:
-    - targets: ['localhost:9100']
+    - targets:
+      - {{inventory_hostname}}:9100
 
   - job_name: 'prometheus'
     # metrics_path defaults to '/metrics'
@@ -39,7 +40,8 @@ scrape_configs:
     tls_config:
       ca_file: /etc/ssl/certs/ca-certificate.pem
     static_configs:
-    - targets: ['localhost:9090']
+    - targets:
+      - {{inventory_hostname}}:9090
 
   - job_name: 'alertmanager'
     # metrics_path defaults to '/metrics'
@@ -47,7 +49,8 @@ scrape_configs:
     tls_config:
       ca_file: /etc/ssl/certs/ca-certificate.pem
     static_configs:
-    - targets: ['localhost:9093']
+    - targets:
+      - {{inventory_hostname}}:9093
 
   - job_name: 'karma'
     # metrics_path defaults to '/metrics'
@@ -55,11 +58,45 @@ scrape_configs:
     tls_config:
       ca_file: /etc/ssl/certs/ca-certificate.pem
     static_configs:
-    - targets: ['localhost:8081']
+    - targets:
+      - {{inventory_hostname}}:8081
 
-  # dsm exporter
   - job_name: dsm-exporter
     scrape_interval: 10s
     static_configs:
       - targets: 
-        - localhost:8080
+        - {{inventory_hostname}}:8080
+
+  - job_name: blackbox-exporter
+    # metrics_path defaults to '/metrics'
+    scheme: https
+    tls_config:
+      ca_file: /etc/ssl/certs/ca-certificate.pem
+    static_configs:
+      - targets: 
+        - {{inventory_hostname}}:9115
+
+  - job_name: 'https-2xx'
+    metrics_path: /probe
+    scheme: https
+    tls_config:
+      ca_file: /etc/ssl/certs/ca-certificate.pem
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+        - https://{{inventory_hostname}}:3000
+        - http://{{inventory_hostname}}:8080
+        - https://{{inventory_hostname}}:8081
+        - https://{{inventory_hostname}}:9090
+        - https://{{inventory_hostname}}:9100
+        - https://{{inventory_hostname}}:9093
+        - https://{{inventory_hostname}}:9115
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: {{inventory_hostname}}:9115
+
