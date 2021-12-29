@@ -4,7 +4,7 @@ alertmanager:
     - name: local
       tls:
         ca: /ca-certificate.pem
-      uri: https://localhost:9093
+      uri: https://{{inventory_hostname}}:9093
       timeout: 10s
       readonly: false
 annotations:

@@ -47,6 +47,8 @@
     - { directory: "/var/lib/dsm/nodeexporter/certs"                  ,owner: "65534" ,group: "65534" ,mode: "0775" }
     - { directory: "/var/lib/dsm/karma"                               ,owner: "root" ,group: "root" ,mode: "0777" }
     - { directory: "/var/lib/dsm/karma/certs"                         ,owner: "root" ,group: "root" ,mode: "0777" }
+    - { directory: "/var/lib/dsm/blackbox"                            ,owner: "65534" ,group: "65534" ,mode: "0775" }
+    - { directory: "/var/lib/dsm/blackbox/certs"                      ,owner: "65534" ,group: "65534" ,mode: "0775" }
 
 # - name: Pull images
 #   containers.podman.podman_image:
@@ -164,6 +166,7 @@
     - { owner: '65534', group: '65534', mode: '0644', path: '/var/lib/dsm/prometheus/certs/' }
     - { owner: '65534', group: '65534', mode: '0644', path: '/var/lib/dsm/alertmanager/certs/' }
     - { owner: 'root', group: 'root', mode: '0644', path: '/var/lib/dsm/karma/certs/' }
+    - { owner: '65534', group: '65534', mode: '0644', path: '/var/lib/dsm/blackbox/certs/' }
   become: true
 
 - name: get CA cert
@@ -322,6 +325,19 @@
   become: true
   notify: _restart_node_exporter
 
+- name: copy blackbox web-config.yml
+  copy:
+    content: |
+      tls_server_config:
+        cert_file: /config/certificate.pem
+        key_file: /config/certificate.key
+    dest: /var/lib/dsm/blackbox/web-config.yml
+    owner: 65534
+    group: 65534
+    mode: 0664
+  become: true
+  notify: _restart_blackbox
+
 - name: copy certificate
   copy:
     src: /var/lib/dsm/certs/certificate.pem
@@ -336,6 +352,7 @@
     - { owner: '65534', group: '65534', path: '/var/lib/dsm/alertmanager/certs' }
     - { owner: '65534', group: '65534', path: '/var/lib/dsm/nodeexporter/certs' }
     - { owner: 'root', group: 'root', path: '/var/lib/dsm/karma/certs' }
+    - { owner: '65534', group: '65534', path: '/var/lib/dsm/blackbox/certs' }
   become: true
 
 - name: copy key and remove passphrase
@@ -349,6 +366,7 @@
     - { owner: '65534', group: '65534', path: '/var/lib/dsm/alertmanager/certs' }
     - { owner: '65534', group: '65534', path: '/var/lib/dsm/nodeexporter/certs' }
     - { owner: 'root', group: 'root', path: '/var/lib/dsm/karma/certs' }
+    - { owner: '65534', group: '65534', path: '/var/lib/dsm/blackbox/certs' }
   become: true
 
 - name: chmod
@@ -364,6 +382,16 @@
     mode: 0666
   become: true
   notify: _restart_karma
+
+- name: create blackbox.yml /var/lib/dsm/blackbox/
+  template:
+    src: blackbox.yml.j2
+    dest: /var/lib/dsm/blackbox/blackbox.yml
+    owner: 65534
+    group: 65534
+    mode: 0660
+  become: true
+  notify: _restart_blackbox
 
 - name: create grafana.in /var/lib/dsm/grafana/etc/
   template:
@@ -402,6 +430,7 @@
     - dashboard-fijnstof.json
     - dashboard-prometheus.json
     - dashboard-alertmanager.json
+    - dashboard-blackbox.json
   notify: _restart_grafana
 
 - name: create /var/lib/dsm/grafana/etc/provisioning/dashboards/dashboard.*.yaml
@@ -418,6 +447,7 @@
     - dashboard-fijnstof.yaml
     - dashboard-prometheus.yaml
     - dashboard-alertmanager.yaml
+    - dashboard-blackbox.yaml
   notify: _restart_grafana
 
 - name: influxdb influxdb.conf
@@ -442,6 +472,7 @@
       - 9093:9093
       - 9100:9100
       - 8081:8081
+      - 9115:9115
   become: true
 
 - name: set permissions and baud rate
@@ -607,6 +638,30 @@
       names: true
   become: true
 
+- name: create blackbox container
+  containers.podman.podman_container:
+    name: blackbox
+    image: quay.io/prometheus/blackbox-exporter:v0.19.0
+    command:
+      - '--config.file=/config/blackbox.yml'
+      - '--web.config.file=/config/web-config.yml'
+    pod: dsm
+    state: present
+    user: 65534
+    recreate: yes
+    expose: 9115
+    volume:
+      - /var/lib/dsm/blackbox/blackbox.yml:/config/blackbox.yml:z
+      - /var/lib/dsm/blackbox/web-config.yml:/config/web-config.yml:z
+      - /var/lib/dsm/blackbox/certs/certificate.pem:/config/certificate.pem:z
+      - /var/lib/dsm/blackbox/certs/certificate.key:/config/certificate.key:z
+      - /var/lib/dsm/blackbox/certs/ca-certificate.pem:/config/ca-certificate.pem:z
+    generate_systemd:
+      path: /etc/systemd/system
+      restart_policy: on-failure
+      names: true
+  become: true
+
 - name: start and enable services
   systemd:
     name: "{{item}}"
@@ -635,6 +690,7 @@
     - influxdb
     - grafana
     - karma
+    - blackbox
   become: true
 
 - debug:

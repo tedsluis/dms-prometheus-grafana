@@ -7,7 +7,7 @@ datasources:
     database: luftdaten
     user: influxdb
     password: {{_influxdb_password}}
-    url: http://localhost:8086
+    url: http://{{inventory_hostname}}:8086
     jsonData:
       httpMode: GET
     secureJsonData:
