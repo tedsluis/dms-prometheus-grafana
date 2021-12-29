@@ -1097,7 +1097,8 @@
     "schemaVersion": 31,
     "style": "dark",
     "tags": [
-      "Luftdaten.info"
+      "Luftdaten.info",
+      "exporter"
     ],
     "templating": {
       "list": []

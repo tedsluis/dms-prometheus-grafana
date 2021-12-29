@@ -2004,7 +2004,7 @@
   "refresh": "5s",
   "schemaVersion": 31,
   "style": "dark",
-  "tags": [],
+  "tags": ["dsm","exporter"],
   "templating": {
     "list": []
   },

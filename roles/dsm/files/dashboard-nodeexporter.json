@@ -2285,7 +2285,9 @@
   "schemaVersion": 31,
   "style": "dark",
   "tags": [
-    "prometheus"
+    "prometheus",
+    "node-exporter",
+    "exporter"
   ],
   "templating": {
     "list": [
