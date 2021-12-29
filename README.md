@@ -54,6 +54,7 @@ Encryption successful
 * dsm exporter: http://dsm:8080/metrics
 * alertmanager: https://dsm:9093
 * karma: https://dsm:8081/metrics
+* blackbox: https://dsm:9115
 
 ### debug USB to serial cable to connect to the smart meter
 
