@@ -105,3 +105,17 @@
     state: started
   become: true
 
+- name: stop container-blackbox.service
+  listen: _restart_blackbox
+  systemd:
+    name: container-blackbox
+    state: stopped
+    daemon_reload: true
+  become: true
+  
+- name: start container-blackbox.service
+  listen: _restart_blackbox
+  systemd:
+    name: container-blackbox
+    state: started
+  become: true
