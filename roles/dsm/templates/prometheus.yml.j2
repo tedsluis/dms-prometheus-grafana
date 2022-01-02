@@ -17,8 +17,6 @@ alerting:
 # Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
 rule_files:
   - /etc/prometheus/rules/*.yml
-  # - "second_rules.yml"
-
 
 # Here it's Prometheus itself.
 scrape_configs:
@@ -76,7 +74,7 @@ scrape_configs:
       - targets: 
         - {{inventory_hostname}}:9115
 
-  - job_name: 'https-2xx'
+  - job_name: 'http-2xx'
     metrics_path: /probe
     scheme: https
     tls_config:
@@ -85,8 +83,26 @@ scrape_configs:
       module: [http_2xx]
     static_configs:
       - targets:
-        - https://{{inventory_hostname}}:3000
         - http://{{inventory_hostname}}:8080
+        - http://ipv4.download.thinkbroadband.com/5MB.zip
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: {{inventory_hostname}}:9115
+
+  - job_name: 'https-2xx'
+    metrics_path: /probe
+    scheme: https
+    tls_config:
+      ca_file: /etc/ssl/certs/ca-certificate.pem
+    params:
+      module: [https_2xx]
+    static_configs:
+      - targets:
+        - https://{{inventory_hostname}}:3000
         - https://{{inventory_hostname}}:8081
         - https://{{inventory_hostname}}:9090
         - https://{{inventory_hostname}}:9100
@@ -100,3 +116,83 @@ scrape_configs:
       - target_label: __address__
         replacement: {{inventory_hostname}}:9115
 
+  - job_name: 'https-2xx-insecure'
+    metrics_path: /probe
+    scheme: https
+    tls_config:
+      ca_file: /etc/ssl/certs/ca-certificate.pem
+    params:
+      module: [https_2xx_insecure]
+    static_configs:
+      - targets:
+        - https://www.google.com
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: {{inventory_hostname}}:9115
+
+  - job_name: 'https-2xx-auth'
+    metrics_path: /probe
+    scheme: https
+    tls_config:
+      ca_file: /etc/ssl/certs/ca-certificate.pem
+    params:
+      module: [https_2xx_auth]
+    static_configs:
+      - targets: []
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: {{inventory_hostname}}:9115
+
+  - job_name: 'https-2xx-nodeexporter'
+    metrics_path: /probe
+    scheme: https
+    tls_config:
+      ca_file: /etc/ssl/certs/ca-certificate.pem
+    params:
+      module: [https_2xx_nodeexporter]
+    static_configs:
+      - targets: []
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: {{inventory_hostname}}:9115
+
+  - job_name: 'dns-test'
+    metrics_path: /probe
+    scheme: https
+    tls_config:
+      ca_file: /etc/ssl/certs/ca-certificate.pem
+    params:
+      module: [dns_test]
+    static_configs:
+      - targets: 
+          - 8.8.8.8
+          - 8.8.4.4
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: {{inventory_hostname}}:9115
+
+  # pushgateway
+  - job_name: pushgateway
+    honor_labels: true
+    scheme: https
+    tls_config:
+      ca_file: /etc/ssl/certs/ca-certificate.pem
+    static_configs:
+    - targets:
+      - {{inventory_hostname}}:9091
