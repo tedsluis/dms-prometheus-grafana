@@ -1,14 +1,74 @@
 modules:
+  # http probe
   http_2xx:
     prober: http
     timeout: 5s
     http:
       method: GET
-      fail_if_ssl: false
+      fail_if_ssl: true
       fail_if_not_ssl: false
+      preferred_ip_protocol: "ip4"
+  # https probe + tls verification
+  https_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      method: GET
+      fail_if_ssl: false
+      fail_if_not_ssl: true
       preferred_ip_protocol: "ip4"
       tls_config:
         insecure_skip_verify: false
         ca_file: /config/ca-certificate.pem
-
+  # https probe - no tls verification
+  https_2xx_insecure:
+    prober: http
+    timeout: 5s
+    http:
+      method: GET
+      fail_if_ssl: false
+      fail_if_not_ssl: true
+      preferred_ip_protocol: "ip4"
+      tls_config:
+        insecure_skip_verify: true
+  # https probe - authentication
+  https_2xx_auth:
+    prober: http
+    timeout: 5s
+    http:
+      valid_status_codes: []  # Defaults to 2xx
+      method: GET
+      follow_redirects: true
+      fail_if_ssl: false
+      fail_if_not_ssl: true
+      preferred_ip_protocol: "ip4"
+      tls_config:
+        insecure_skip_verify: false
+        ca_file: /config/ca-certificate.pem
+      basic_auth:
+        username: admin
+        password: {{_admin_password}}
+  # https probe - node exporter
+  https_2xx_nodeexporter:
+    prober: http
+    timeout: 5s
+    http:
+      method: POST
+      fail_if_ssl: false
+      fail_if_not_ssl: true
+      preferred_ip_protocol: "ip4"
+      tls_config:
+        insecure_skip_verify: false
+        ca_file: /config/ca-certificate.pem
+      basic_auth:
+        username: "prometheus"
+        password: "{{_node_exporter_auth_pass}}"
+  # dns probe
+  dns_test:
+    prober: dns
+    timeout: 5s
+    dns:
+      query_name: home.bachstraat20.duckdns.org
+      preferred_ip_protocol: ip4
+      ip_protocol_fallback: false
   
