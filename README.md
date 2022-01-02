@@ -55,6 +55,7 @@ Encryption successful
 * alertmanager: https://dsm:9093
 * karma: https://dsm:8081/metrics
 * blackbox: https://dsm:9115
+* pushgateway: https://dsm:9091
 
 ### debug USB to serial cable to connect to the smart meter
 
