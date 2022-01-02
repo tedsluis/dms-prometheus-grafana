@@ -45,10 +45,12 @@
     - { directory: "/var/lib/dsm/certs"                               ,owner: "0"     ,group: "0"     ,mode: "0775" }
     - { directory: "/var/lib/dsm/nodeexporter"                        ,owner: "65534" ,group: "65534" ,mode: "0775" }
     - { directory: "/var/lib/dsm/nodeexporter/certs"                  ,owner: "65534" ,group: "65534" ,mode: "0775" }
-    - { directory: "/var/lib/dsm/karma"                               ,owner: "root" ,group: "root" ,mode: "0777" }
-    - { directory: "/var/lib/dsm/karma/certs"                         ,owner: "root" ,group: "root" ,mode: "0777" }
+    - { directory: "/var/lib/dsm/karma"                               ,owner: "root" ,group: "root"   ,mode: "0777" }
+    - { directory: "/var/lib/dsm/karma/certs"                         ,owner: "root" ,group: "root"   ,mode: "0777" }
     - { directory: "/var/lib/dsm/blackbox"                            ,owner: "65534" ,group: "65534" ,mode: "0775" }
     - { directory: "/var/lib/dsm/blackbox/certs"                      ,owner: "65534" ,group: "65534" ,mode: "0775" }
+    - { directory: "/var/lib/dsm/pushgateway"                         ,owner: "65534" ,group: "65534" ,mode: "0775" }
+    - { directory: "/var/lib/dsm/pushgateway/certs"                   ,owner: "65534" ,group: "65534" ,mode: "0775" }
 
 # - name: Pull images
 #   containers.podman.podman_image:
@@ -167,6 +169,7 @@
     - { owner: '65534', group: '65534', mode: '0644', path: '/var/lib/dsm/alertmanager/certs/' }
     - { owner: 'root', group: 'root', mode: '0644', path: '/var/lib/dsm/karma/certs/' }
     - { owner: '65534', group: '65534', mode: '0644', path: '/var/lib/dsm/blackbox/certs/' }
+    - { owner: '65534', group: '65534', mode: '0644', path: '/var/lib/dsm/pushgateway/certs/' }
   become: true
 
 - name: get CA cert
@@ -262,6 +265,7 @@
     - blackbox
     - alertmanager
     - karma
+    - pushgateway
   become: true
   notify: _restart_prometheus
 
@@ -269,19 +273,6 @@
   template:
     src: prometheus.yml.j2
     dest: /var/lib/dsm/prometheus/config/prometheus.yml
-    owner: 65534
-    group: 65534
-    mode: 0664
-  become: true
-  notify: _restart_prometheus
-
-- name: copy prometheus web-config.yml
-  copy:
-    content: |
-      tls_server_config:
-        cert_file: /etc/ssl/certs/certificate.pem
-        key_file: /etc/ssl/certs/certificate.key
-    dest: /var/lib/dsm/prometheus/config/web-config.yml
     owner: 65534
     group: 65534
     mode: 0664
@@ -298,45 +289,23 @@
   become: true
   notify: _restart_alertmanager
 
-
-- name: copy alertmanager web-config.yml
+- name: copy web-config.yml
   copy:
     content: |
       tls_server_config:
-        cert_file: /etc/ssl/certs/certificate.pem
-        key_file: /etc/ssl/certs/certificate.key
-    dest: /var/lib/dsm/alertmanager/web-config.yml
+        cert_file: "{{item.cert_path}}/certificate.pem"
+        key_file: "{{item.cert_path}}/certificate.key"
+    dest: /var/lib/dsm/{{item.web_path}}/web-config.yml
     owner: 65534
     group: 65534
     mode: 0664
+  loop:
+    - { web_path: 'alertmanager', cert_path: '/etc/ssl/certs' }
+    - { web_path: 'prometheus/config', cert_path: '/etc/ssl/certs' }
+    - { web_path: 'nodeexporter', cert_path: '/etc/ssl/certs' }
+    - { web_path: 'blackbox', cert_path: '/config' }
+    - { web_path: 'pushgateway', cert_path: '/pushgateway' }
   become: true
-  notify: _restart_alertmanager
-
-- name: copy node-exporter web-config.yml
-  copy:
-    content: |
-      tls_server_config:
-        cert_file: /etc/ssl/certs/certificate.pem
-        key_file: /etc/ssl/certs/certificate.key
-    dest: /var/lib/dsm/nodeexporter/web-config.yml
-    owner: 65534
-    group: 65534
-    mode: 0664
-  become: true
-  notify: _restart_node_exporter
-
-- name: copy blackbox web-config.yml
-  copy:
-    content: |
-      tls_server_config:
-        cert_file: /config/certificate.pem
-        key_file: /config/certificate.key
-    dest: /var/lib/dsm/blackbox/web-config.yml
-    owner: 65534
-    group: 65534
-    mode: 0664
-  become: true
-  notify: _restart_blackbox
 
 - name: copy certificate
   copy:
@@ -353,6 +322,7 @@
     - { owner: '65534', group: '65534', path: '/var/lib/dsm/nodeexporter/certs' }
     - { owner: 'root', group: 'root', path: '/var/lib/dsm/karma/certs' }
     - { owner: '65534', group: '65534', path: '/var/lib/dsm/blackbox/certs' }
+    - { owner: '65534', group: '65534', path: '/var/lib/dsm/pushgateway/certs' }
   become: true
 
 - name: copy key and remove passphrase
@@ -367,6 +337,7 @@
     - { owner: '65534', group: '65534', path: '/var/lib/dsm/nodeexporter/certs' }
     - { owner: 'root', group: 'root', path: '/var/lib/dsm/karma/certs' }
     - { owner: '65534', group: '65534', path: '/var/lib/dsm/blackbox/certs' }
+    - { owner: '65534', group: '65534', path: '/var/lib/dsm/pushgateway/certs' }
   become: true
 
 - name: chmod
@@ -467,11 +438,12 @@
     ports:
       - 3000:3000
       - 8080:8080
+      - 8081:8081
       - 8086:8086
       - 9090:9090
+      - 9091:9091
       - 9093:9093
       - 9100:9100
-      - 8081:8081
       - 9115:9115
   become: true
 
@@ -506,10 +478,11 @@
     command: 
       - '--path.rootfs=/host'
       - '--web.config=/etc/web-config.yml'
+      - '--log.level=debug'
     state: present
     user: 65534
     recreate: yes
-    expose: 9090
+    expose: 9100
     volume:
       - "/:/host:ro,rslave"
       - /var/lib/dsm/nodeexporter/web-config.yml:/etc/web-config.yml:z
@@ -533,7 +506,8 @@
       - '--storage.tsdb.retention.time=1500d'
       - '--storage.tsdb.retention.size=15GB'
       - '--web.config.file=/etc/prometheus/web-config.yml'
-      - '--web.external-url=https://dsm/'
+      - '--web.external-url=https://dsm:9090'
+      - '--log.level=debug'
     pod: dsm
     state: present
     user: 65534
@@ -547,7 +521,7 @@
       - /var/lib/dsm/prometheus/certs/ca-certificate.pem:/etc/ssl/certs/ca-certificate.pem:z
     generate_systemd:
       path: /etc/systemd/system
-      restart_policy: on-failure
+      restart_policy: always
       names: true
   become: true
 
@@ -559,6 +533,8 @@
       - '--config.file=/etc/alertmanager/alertmanager.yml'
       - '--storage.path=/alertmanager'
       - '--web.config.file=/etc/alertmanager/web-config.yml'
+      - '--web.external-url=https://dsm:9093'
+      - '--log.level=debug'
     pod: dsm
     state: present
     user: 65534
@@ -621,20 +597,20 @@
     name: karma
     image: ghcr.io/prymitive/karma:latest
     command:
-      - '--config.file=/karma.yml'
+      - '--config.file=/etc/karma/karma.yml'
     pod: dsm
     state: present
     #user: 
     recreate: yes
     expose: 8081
     volume:
-      - /var/lib/dsm/karma/karma.yml:/karma.yml:z
-      - /var/lib/dsm/karma/certs/certificate.pem:/certificate.pem:z
-      - /var/lib/dsm/karma/certs/certificate.key:/certificate.key:z
-      - /var/lib/dsm/karma/certs/ca-certificate.pem:/ca-certificate.pem:z
+      - /var/lib/dsm/karma/karma.yml:/etc/karma/karma.yml:z
+      - /var/lib/dsm/karma/certs/certificate.pem:/etc/ssl/certs/certificate.pem:z
+      - /var/lib/dsm/karma/certs/certificate.key:/etc/ssl/certs/certificate.key:z
+      - /var/lib/dsm/karma/certs/ca-certificate.pem:/etc/ssl/certs/ca-certificate.pem:z
     generate_systemd:
       path: /etc/systemd/system
-      restart_policy: on-failure
+      restart_policy: always
       names: true
   become: true
 
@@ -645,6 +621,8 @@
     command:
       - '--config.file=/config/blackbox.yml'
       - '--web.config.file=/config/web-config.yml'
+      - '--web.external-url=https://dsm:9115'
+      - '--log.level=debug'
     pod: dsm
     state: present
     user: 65534
@@ -656,6 +634,31 @@
       - /var/lib/dsm/blackbox/certs/certificate.pem:/config/certificate.pem:z
       - /var/lib/dsm/blackbox/certs/certificate.key:/config/certificate.key:z
       - /var/lib/dsm/blackbox/certs/ca-certificate.pem:/config/ca-certificate.pem:z
+    generate_systemd:
+      path: /etc/systemd/system
+      restart_policy: on-failure
+      names: true
+  become: true
+
+- name: create pushgateway container
+  containers.podman.podman_container:
+    name: pushgateway
+    image: quay.io/prometheus/pushgateway:latest
+    command:
+      - '--web.config.file=/pushgateway/web-config.yml'
+      - '--web.external-url=https://dsm:9091'
+      - '--web.enable-admin-api'
+      - '--log.level=debug'
+    pod: dsm
+    state: present
+    user: 65534
+    recreate: yes
+    expose: 9091
+    volume:
+      - /var/lib/dsm/pushgateway/web-config.yml:/pushgateway/web-config.yml:z
+      - /var/lib/dsm/pushgateway/certs/certificate.pem:/pushgateway/certificate.pem:z
+      - /var/lib/dsm/pushgateway/certs/certificate.key:/pushgateway/certificate.key:z
+      - /var/lib/dsm/pushgateway/certs/ca-certificate.pem:/pushgateway/ca-certificate.pem:z
     generate_systemd:
       path: /etc/systemd/system
       restart_policy: on-failure
@@ -676,6 +679,8 @@
     - container-influxdb
     - container-grafana
     - container-karma
+    - container-blackbox
+    - container-pushgateway
   become: true
 
 - name: container state
@@ -691,6 +696,7 @@
     - grafana
     - karma
     - blackbox
+    - pushgateway
   become: true
 
 - debug:
@@ -711,7 +717,7 @@
 
 - name: set grafana password
   shell: |
-    podman exec grafana /usr/share/grafana/bin/grafana-cli admin reset-admin-password {{_grafana_admin_password}} --config=/etc/grafana/grafana.ini || echo "set password failed."
+    podman exec grafana /usr/share/grafana/bin/grafana-cli admin reset-admin-password {{_admin_password}} --config=/etc/grafana/grafana.ini || echo "set password failed."
   become: true
   register: _set_grafana_password
 
