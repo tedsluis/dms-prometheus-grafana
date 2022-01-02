@@ -402,6 +402,7 @@
     - dashboard-prometheus.json
     - dashboard-alertmanager.json
     - dashboard-blackbox.json
+    - dashboard-karma.json
   notify: _restart_grafana
 
 - name: create /var/lib/dsm/grafana/etc/provisioning/dashboards/dashboard.*.yaml
@@ -419,6 +420,7 @@
     - dashboard-prometheus.yaml
     - dashboard-alertmanager.yaml
     - dashboard-blackbox.yaml
+    - dashboard-karma.yaml
   notify: _restart_grafana
 
 - name: influxdb influxdb.conf
