@@ -119,3 +119,18 @@
     name: container-blackbox
     state: started
   become: true
+
+- name: stop container-pushgateway.service
+  listen: _restart_pushgateway
+  systemd:
+    name: container-pushgateway
+    state: stopped
+    daemon_reload: true
+  become: true
+  
+- name: start container-pushgateway.service
+  listen: _restart_pushgateway
+  systemd:
+    name: container-pushgateway
+    state: started
+  become: true
