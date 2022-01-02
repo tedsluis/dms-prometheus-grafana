@@ -2,11 +2,26 @@ alertmanager:
   interval: 60s
   servers:
     - name: local
+      proxy: true
+      healthcheck:
+        filters:
+          prom1:
+            - alertname=prometheus-alertmanager-e2e-dead-man-switch
       tls:
-        ca: /ca-certificate.pem
+        ca: /etc/ssl/certs/ca-certificate.pem
       uri: https://{{inventory_hostname}}:9093
       timeout: 10s
       readonly: false
+history:
+  enabled: true
+  timeout: 20s
+  workers: 30
+  rewrite:
+    - source: 'https://{{inventory_hostname}}'
+      uri: 'https://{{inventory_hostname}}:9090'
+      tls:
+        insecureSkipVerify: true
+        ca: /etc/ssl/certs/ca-certificate.pem
 annotations:
   default:
     hidden: false
@@ -34,11 +49,14 @@ listen:
   port: 8081
   prefix: /
   tls:
-    cert: /certificate.pem
-    key: /certificate.key
+    cert: /etc/ssl/certs/certificate.pem
+    key: /etc/ssl/certs/certificate.key
 log:
-  config: false
-  level: info
+  config: true
+  level: debug
+  format: text
+  requests: true
+  timestamp: true
 silences:
   comments:
     linkDetect:
