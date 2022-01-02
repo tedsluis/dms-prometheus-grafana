@@ -1,5 +1,5 @@
 groups:
-    - name: linux-server.rules
+    - name: blackbox.rules
       rules:
       - alert: blackbox-down
         annotations:
