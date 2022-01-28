@@ -196,3 +196,19 @@ scrape_configs:
     static_configs:
     - targets:
       - {{inventory_hostname}}:9091
+
+  # haproxy
+  - job_name: haproxy
+    # scheme: https
+    # tls_config:
+    #   ca_file: /etc/ssl/certs/ca-certificate.pem
+    static_configs:
+    - targets:
+      - {{inventory_hostname}}:8404
+
+  # cadvisor
+  - job_name: cadvisor
+    scrape_interval: 5s
+    static_configs:
+    - targets:
+      - {{inventory_hostname}}:8082
