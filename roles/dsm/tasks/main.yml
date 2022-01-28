@@ -45,12 +45,15 @@
     - { directory: "/var/lib/dsm/certs"                               ,owner: "0"     ,group: "0"     ,mode: "0775" }
     - { directory: "/var/lib/dsm/nodeexporter"                        ,owner: "65534" ,group: "65534" ,mode: "0775" }
     - { directory: "/var/lib/dsm/nodeexporter/certs"                  ,owner: "65534" ,group: "65534" ,mode: "0775" }
-    - { directory: "/var/lib/dsm/karma"                               ,owner: "root" ,group: "root"   ,mode: "0777" }
-    - { directory: "/var/lib/dsm/karma/certs"                         ,owner: "root" ,group: "root"   ,mode: "0777" }
+    - { directory: "/var/lib/dsm/karma"                               ,owner: "root"  ,group: "root"  ,mode: "0777" }
+    - { directory: "/var/lib/dsm/karma/certs"                         ,owner: "root"  ,group: "root"  ,mode: "0777" }
     - { directory: "/var/lib/dsm/blackbox"                            ,owner: "65534" ,group: "65534" ,mode: "0775" }
     - { directory: "/var/lib/dsm/blackbox/certs"                      ,owner: "65534" ,group: "65534" ,mode: "0775" }
     - { directory: "/var/lib/dsm/pushgateway"                         ,owner: "65534" ,group: "65534" ,mode: "0775" }
     - { directory: "/var/lib/dsm/pushgateway/certs"                   ,owner: "65534" ,group: "65534" ,mode: "0775" }
+    - { directory: "/var/lib/dsm/haproxy"                             ,owner: "99"    ,group: "99"    ,mode: "0775" }
+    - { directory: "/var/lib/dsm/cadvisor"                            ,owner: "root"  ,group: "root"  ,mode: "0775" }
+   
 
 # - name: Pull images
 #   containers.podman.podman_image:
@@ -81,6 +84,21 @@
 #   containers.podman.podman_image:
 #     name: dsm-exporter
 #     path: /var/lib/dsm/dsm-exporter
+#   become: true
+
+- name: copy containerfile cadvisor
+  template:
+    src: Containerfile-cadvisor
+    dest:  /var/lib/dsm/cadvisor/Containerfile
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+
+- name: Build cadvisor image
+  containers.podman.podman_image:
+    name: "cadvisor:{{_cadvisor_version}}"
+    path: /var/lib/dsm/cadvisor/
   become: true
 
 # create ca
@@ -433,15 +451,37 @@
   become: true
   notify: _restart_influxdb
 
+- name: touch /var/lib/dsm/pushgateway/pushgateway_persist
+  file:
+    path: /var/lib/dsm/pushgateway/pushgateway_persist
+    state: touch
+    owner: 65534
+    group: 65534
+    mode: 0664
+  become: true
+
+- name: haproxy.cfg
+  template:
+    src: haproxy.cfg.j2
+    dest: /var/lib/dsm/haproxy/haproxy.cfg
+    owner: 99
+    group: 99
+    mode: 0664
+  become: true
+  notify: _restart_haproxy
+
 - name: create pod
   containers.podman.podman_pod:
     name: dsm
     state: started
     ports:
+      - 443:443
       - 3000:3000
       - 8080:8080
       - 8081:8081
+      - 8082:8082
       - 8086:8086
+      - 8404:8404
       - 9090:9090
       - 9091:9091
       - 9093:9093
@@ -449,10 +489,20 @@
       - 9115:9115
   become: true
 
-- name: set permissions and baud rate
+- name: set baud rate
   shell: |
     stty -F /dev/ttyUSB0 115200
-    chmod 666 /dev/ttyUSB0
+  become: true
+  failed_when: false
+
+- name: set permissions
+  file:
+    path: /dev/ttyUSB0
+    owner: root
+    group: dialout
+    mode: '0777'
+  become: true
+  failed_when: false
 
 - name: create dsm exporter container
   containers.podman.podman_container:
@@ -590,9 +640,13 @@
       - /var/lib/dsm/grafana/lib:/var/lib/grafana:z
     generate_systemd:
       path: /etc/systemd/system
-      restart_policy: on-failure
+      restart_policy: always
       names: true
   become: true
+  register: _debug_grafana
+
+- debug:
+    var: _debug_grafana
 
 - name: create karma container
   containers.podman.podman_container:
@@ -651,12 +705,14 @@
       - '--web.external-url=https://dsm:9091'
       - '--web.enable-admin-api'
       - '--log.level=debug'
+      - '--persistence.file="/pushgateway/pushgateway_persist"'
     pod: dsm
     state: present
     user: 65534
     recreate: yes
     expose: 9091
     volume:
+      - /var/lib/dsm/pushgateway/web-config.yml:/pushgateway/pushgateway_persist:z
       - /var/lib/dsm/pushgateway/web-config.yml:/pushgateway/web-config.yml:z
       - /var/lib/dsm/pushgateway/certs/certificate.pem:/pushgateway/certificate.pem:z
       - /var/lib/dsm/pushgateway/certs/certificate.key:/pushgateway/certificate.key:z
@@ -666,6 +722,58 @@
       restart_policy: on-failure
       names: true
   become: true
+
+- name: create cadvisor container
+  containers.podman.podman_container:
+    name: cadvisor
+    image:  "localhost/cadvisor:{{_cadvisor_version}}"
+    pod: dsm
+    state: present
+    privileged: yes
+    device: /dev/kmsg:/dev/kmsg:rwm
+    user: 65534
+    recreate: yes
+    expose: 8082
+    healthcheck: '/usr/bin/wget --quiet --tries=1 --spider http://127.0.0.1:8082/healthz || exit 1'
+    healthcheck_start_period: 30s
+    volume:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /dev/disk/:/dev/disk:ro
+      - /var/lib/containers:/var/lib/containers:ro
+      - /etc/machine-id:/etc/machine-id:ro
+    generate_systemd:
+      path: /etc/systemd/system
+      restart_policy: on-failure
+      names: true
+  become: true
+  tags: cadvisor
+
+- name: create haproxy container
+  containers.podman.podman_container:
+    name: haproxy
+    image: docker.io/haproxytech/haproxy-alpine:latest
+    # command:
+    #   - 'haproxy -c -f /usr/local/etc/haproxy/haproxy.cfg'
+    pod: dsm
+    state: present
+    user: 99
+    recreate: yes
+    sysctl: 
+      net.ipv4.ip_unprivileged_port_start=0
+    expose: 
+      - 443
+      - 8404
+    volume:
+      - /var/lib/dsm/haproxy:/usr/local/etc/haproxy:z
+    generate_systemd:
+      path: /etc/systemd/system
+      restart_policy: always
+      names: true
+  become: true
+  tags: haproxy
 
 - name: start and enable services
   systemd:
@@ -683,6 +791,8 @@
     - container-karma
     - container-blackbox
     - container-pushgateway
+    - container-cadvisor
+    - container-haproxy
   become: true
 
 - name: container state
@@ -699,6 +809,8 @@
     - karma
     - blackbox
     - pushgateway
+    - cadvisor
+    - haproxy
   become: true
 
 - debug:
