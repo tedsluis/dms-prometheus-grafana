@@ -5,7 +5,9 @@ groups:
         annotations:
           description: 'alertmanager is down {{ $labels.instance }}'
           summary: 'alertmanager is down'
+          console: "https://dsm:3000/d/alertmanager/alertmanager?orgId=1&refresh=5m"
         expr: up{job="alertmanager"} != 1 or absent(up{job="alertmanager"}) ==1
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1h

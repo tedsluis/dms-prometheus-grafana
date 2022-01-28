@@ -9,6 +9,7 @@ groups:
         for: 1m
         labels:
           severity: warning
+          repeat_interval: 1d
       - alert: node-exporter-down
         annotations:
           description: 'node-exporter is down {{ $labels.instance }}'
@@ -17,6 +18,7 @@ groups:
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1h
       - alert: daemonFailed
         annotations:
           description: 'A systemd daemon {{ $labels.name }} on node {{ $labels.instance }} failed'
@@ -25,6 +27,7 @@ groups:
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1h
       - alert: diskMoreThen95%Full
         annotations:
           description: 'A disk is filling up, more then 95% used  {{ $labels.instance }},  {{ $labels.instance }}, device {{ $labels.device }}, mountpoint {{ $labels.mountpoint }}'
@@ -33,6 +36,7 @@ groups:
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1h
       - alert: cpu100%Usage
         annotations:
           description: '100% CPU usage {{ $labels.instance }}'
@@ -41,12 +45,14 @@ groups:
         for: 5m
         labels:
           severity: warning
+          repeat_interval: 1d
       - alert: swapUsageAbove50%
         expr: |
           (node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes) / node_memory_SwapTotal_bytes * 100 > 50
         for: 1h
         labels:
           severity: warning
+          repeat_interval: 1d
         annotations:
           description: 'Instance {{ $labels.instance }} of job {{ $labels.job }} has swap usage above 50% (current value: {{ printf "%.2f" $value }}%) for over 1 hour'
           summary: 'Swap usage above 50%'
@@ -55,6 +61,7 @@ groups:
         for: 5m
         labels:
           severity: warning
+          repeat_interval: 1d
         annotations:
           summary: 'Host memory under memory pressure (instance {{ $labels.instance }})'
           description: 'The node is under heavy memory pressure. High rate of major page faults\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
@@ -63,6 +70,7 @@ groups:
         for: 5m
         labels:
           severity: warning
+          repeat_interval: 1h
         annotations:
           summary: 'Host disk will fill in 4 hours (instance {{ $labels.instance }})'
           description: 'Disk will fill in 4 hours at current write rate\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
@@ -71,6 +79,7 @@ groups:
         for: 5m
         labels:
           severity: warning
+          repeat_interval: 1d
         annotations:
           summary: 'Host unusual network throughput in (instance {{ $labels.instance }})'
           description: 'Host network interfaces are probably receiving too much data (> 100 MB/s)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
@@ -79,6 +88,7 @@ groups:
         for: 5m
         labels:
           severity: warning
+          repeat_interval: 1d
         annotations:
           summary: 'Host unusual network throughput out (instance {{ $labels.instance }})'
           description: 'Host network interfaces are probably sending too much data (> 100 MB/s)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
@@ -87,6 +97,7 @@ groups:
         for: 5m
         labels:
           severity: warning
+          repeat_interval: 1d
         annotations:
           summary: 'Host unusual disk read rate (instance {{ $labels.instance }})'
           description: 'Disk is probably reading too much data (> 50 MB/s)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
@@ -95,6 +106,7 @@ groups:
         for: 5m
         labels:
           severity: warning
+          repeat_interval: 1d
         annotations:
           summary: 'Host unusual disk write rate (instance {{ $labels.instance }})'
           description: 'Disk is probably writing too much data (> 50 MB/s)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
@@ -103,6 +115,7 @@ groups:
         for: 5m
         labels:
           severity: warning
+          repeat_interval: 1h
         annotations:
           summary: 'Host out of inodes (instance {{ $labels.instance }})'
           description: 'Disk is almost running out of available inodes (< 10% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
@@ -111,6 +124,7 @@ groups:
         for: 5m
         labels:
           severity: warning
+          repeat_interval: 1d
         annotations:
           summary: 'Host unusual disk read latency (instance {{ $labels.instance }})'
           description: 'Disk latency is growing (read operations > 100ms)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
@@ -119,6 +133,7 @@ groups:
         for: 5m
         labels:
           severity: warning
+          repeat_interval: 1d
         annotations:
           summary: 'Host unusual disk write latency (instance {{ $labels.instance }})'
           description: 'Disk latency is growing (write operations > 100ms)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
@@ -127,6 +142,7 @@ groups:
         for: 5m
         labels:
           severity: warning
+          repeat_interval: 1d
         annotations:
           summary: 'Host context switching (instance {{ $labels.instance }})'
           description: 'Context switching is growing on node (> 1000 / s)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
@@ -135,6 +151,7 @@ groups:
         for: 5m
         labels:
           severity: warning
+          repeat_interval: 1h
         annotations:
           summary: 'Host physical component too hot (instance {{ $labels.instance }})'
           description: 'Physical hardware component too hot\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
@@ -143,6 +160,7 @@ groups:
         for: 5m
         labels:
           severity: critical
+          repeat_interval: 1d
         annotations:
           summary: 'Host node overtemperature alarm (instance {{ $labels.instance }})'
           description: 'Physical node temperature alarm triggered\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
@@ -151,6 +169,7 @@ groups:
         for: 5m
         labels:
           severity: warning
+          repeat_interval: 1w
         annotations:
           summary: 'Host kernel version deviations (instance {{ $labels.nodename }})'
           description: 'Different kernel versions are running\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
@@ -159,6 +178,7 @@ groups:
         for: 5m
         labels:
           severity: warning
+          repeat_interval: 1d
         annotations:
           summary: 'Host OOM kill detected (instance {{ $labels.instance }})'
           description: 'OOM kill detected\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
@@ -167,6 +187,7 @@ groups:
         for: 5m
         labels:
           severity: warning
+          repeat_interval: 1d
         annotations:
           summary: 'Host Network Receive Errors (instance {{ $labels.instance }})'
           description: '{{ $labels.instance }} interface {{ $labels.device }} has encountered {{ printf "%.0f" $value }} receive errors in the last five minutes.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
@@ -175,6 +196,7 @@ groups:
         for: 5m
         labels:
           severity: warning
+          repeat_interval: 1d
         annotations:
           summary: 'Host Network Transmit Errors (instance {{ $labels.instance }})'
           description: '{{ $labels.instance }} interface {{ $labels.device }} has encountered {{ printf "%.0f" $value }} transmit errors in the last five minutes.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
@@ -183,6 +205,7 @@ groups:
         for: 5m
         labels:
           severity: warning
+          repeat_interval: 1d
         annotations:
           summary: 'Host Network Interface Saturated (instance {{ $labels.instance }})'
           description: 'The network interface "{{ $labels.interface }}" on "{{ $labels.instance }}" is getting overloaded.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'

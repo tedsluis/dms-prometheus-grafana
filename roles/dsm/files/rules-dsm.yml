@@ -9,11 +9,13 @@ groups:
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1h
       - alert: Gasgebruik_0-5
         expr: delta(gotsmart_gas_usage_m3[10m])>0.01  and ON() hour() > 0 < 5
         for: 10m
         labels:
-          severity: critical
+          severity: warning
+          repeat_interval: 1h
         annotations:
           summary: 'Gasgebruik tussen 0:00 en 5:00'
           description: 'Gasgebruik tussen 0:00 en 5:00 maar dan 0.1m3'
@@ -21,7 +23,8 @@ groups:
         expr: gotsmart_active_power_delivered_l1_kw >0.4 and ON() hour() > 0 < 5
         for: 5m
         labels:
-          severity: critical
+          severity: warning
+          repeat_interval: 1h
         annotations:
           summary: 'Elektriciteitsbruik_0 tussen 0:00 en 5:00'
           description: 'Elektriciteitsbruik_0 tussen 0:00 en 5:00 maar dan 0.4kW'

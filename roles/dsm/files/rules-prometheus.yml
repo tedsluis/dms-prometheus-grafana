@@ -9,6 +9,7 @@ groups:
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1h
       - alert: prometheus-job-missing
         annotations:
           summery: Prometheus job missing
@@ -16,6 +17,7 @@ groups:
         for: 1m
         labels:
           severity: warning
+          repeat_interval: 1h
         expr: 'absent(up{job="prometheus"})'
       - alert: prometheus-all-target-missing
         annotations:
@@ -24,6 +26,7 @@ groups:
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1h
         expr: 'count by (job) (up) == 0'
       - alert: prometheus-config-reload-failure
         annotations:
@@ -32,6 +35,7 @@ groups:
         for: 1m
         labels:
           severity: warning
+          repeat_interval: 1d
         expr: 'prometheus_config_last_reload_successful != 1'
       - alert: prometheus-too-many-restarts
         annotations:
@@ -40,6 +44,7 @@ groups:
         for: 1m
         labels:
           severity: warning
+          repeat_interval: 1d
         expr: 'changes(process_start_time_seconds{job=~"prometheus|pushgateway|alertmanager"}[15m]) > 2'
       - alert: prometheus-alertmanager-config-reload-failer
         annotations:
@@ -48,6 +53,7 @@ groups:
         for: 1m
         labels:
           severity: warning
+          repeat_interval: 1d
         expr: 'alertmanager_config_last_reload_successful != 1'
       - alert: prometheus-alertmanager-config-not-syned
         annotations:
@@ -56,6 +62,7 @@ groups:
         for: 1m
         labels:
           severity: warning
+          repeat_interval: 1d
         expr: 'count(count_values("config_hash", alertmanager_config_hash)) > 1'
       - alert: prometheus-alertmanager-e2e-dead-man-switch
         annotations:
@@ -64,6 +71,7 @@ groups:
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1h
         expr: 'vector(1)'
       - alert: prometheus--not-connected-to-alertmanager
         annotations:
@@ -72,6 +80,7 @@ groups:
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1h
         expr: 'prometheus_notifications_alertmanagers_discovered < 1'
       - alert: prometheus-rule-evaluation-failures
         annotations:
@@ -80,6 +89,7 @@ groups:
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1d
         expr: 'increase(prometheus_rule_evaluation_failures_total[3m]) > 0'
       - alert: prometheus-template-text-expension-failures
         annotations:
@@ -88,6 +98,7 @@ groups:
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1h
         expr: 'increase(prometheus_template_text_expansion_failures_total[3m]) > 0'
       - alert: prometheus-rule-evaluation-slow
         annotations:
@@ -95,6 +106,7 @@ groups:
           description: 'Prometheus rule evaluation took more time than the scheduled interval. It indicates a slower storage backend access or too complex query.'
         labels:
           severity: warning
+          repeat_interval: 1d
         expr: 'prometheus_rule_group_last_duration_seconds > prometheus_rule_group_interval_seconds'
         for: 5m
       - alert: prometheus-notification-backlog
@@ -104,6 +116,7 @@ groups:
         for: 1m
         labels:
           severity: warning
+          repeat_interval: 1d
         expr: 'min_over_time(prometheus_notifications_queue_length[10m]) > 0'
       - alert: prometheus-alertmanager-notification-failing
         annotations:
@@ -112,14 +125,17 @@ groups:
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1h
         expr: 'rate(alertmanager_notifications_failed_total[1m]) > 0'
       - alert: prometheus-target-empty
         annotations:
           summery: Prometheus target empty
           description: Prometheus has no target in service discovery
+          concole: https://dsm:3000/d/prometheus/prometheus-2-0-overview?orgId=1&refresh=30s
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1h
         expr: 'prometheus_sd_discovered_targets == 0'
       - alert: prometheus-target-scraping-slow
         annotations:
@@ -127,6 +143,7 @@ groups:
           description: Prometheus is scraping exporters slowly
         labels:
           severity: warning
+          repeat_interval: 1d
         expr: 'prometheus_target_interval_length_seconds{quantile="0.9"} > 60'
         for: 5m
       - alert: prometheus-large-scrape
@@ -135,6 +152,7 @@ groups:
           description: Prometheus has many scrapes that exceed the sample limit
         labels:
           severity: warning
+          repeat_interval: 1d
         expr: 'increase(prometheus_target_scrapes_exceeded_sample_limit_total[10m]) > 10'
         for: 5m
       - alert: prometheus-targetscrape-duplicate
@@ -144,6 +162,7 @@ groups:
         for: 1m
         labels:
           severity: warning
+          repeat_interval: 1d
         expr: 'increase(prometheus_target_scrapes_sample_duplicate_timestamp_total[5m]) > 0'
       - alert: prometheus-tsdb-checkpoint-creation-failures
         annotations:
@@ -152,6 +171,7 @@ groups:
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1h
         expr: 'increase(prometheus_tsdb_checkpoint_creations_failed_total[1m]) > 0'
       - alert: prometheus-tsdb-checkpoint-deletion-failures
         annotations:
@@ -160,6 +180,7 @@ groups:
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1h
         expr: 'increase(prometheus_tsdb_checkpoint_deletions_failed_total[1m]) > 0'
       - alert: prometheus-tsdb-compactions-failed
         annotations:
@@ -168,6 +189,7 @@ groups:
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1h
         expr: 'increase(prometheus_tsdb_compactions_failed_total[1m]) > 0'
       - alert: prometheus-tsdb-head-truncations-failed
         annotations:
@@ -176,6 +198,7 @@ groups:
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1h
         expr: 'increase(prometheus_tsdb_head_truncations_failed_total[1m]) > 0'
       - alert: prometheus-tsdb-relad-failures
         annotations:
@@ -184,6 +207,7 @@ groups:
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1h
         expr: 'increase(prometheus_tsdb_reloads_failures_total[1m]) > 0'
       - alert: prometheus-tsdb-wal-corruptions
         annotations:
@@ -192,6 +216,7 @@ groups:
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1h
         expr: 'increase(prometheus_tsdb_wal_corruptions_total[1m]) > 0'
       - alert: prometheus-tsdb-wal-truncations-failed
         annotations:
@@ -200,4 +225,5 @@ groups:
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1h
         expr: 'increase(prometheus_tsdb_wal_truncations_failed_total[1m]) > 0'

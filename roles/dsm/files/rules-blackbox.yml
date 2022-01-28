@@ -9,11 +9,13 @@ groups:
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1h
       - alert: BlackboxProbeFailed
         expr: probe_success == 0
         for: 5m
         labels:
           severity: critical
+          repeat_interval: 1h
         annotations:
           summary: 'Blackbox probe failed (instance {{ $labels.instance }})'
           description: 'Probe failed\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
@@ -22,6 +24,7 @@ groups:
         for: 5m
         labels:
           severity: warning
+          repeat_interval: 1d
         annotations:
           summary: 'Blackbox slow probe (instance {{ $labels.instance }})'
           description: 'Blackbox probe took more than 1s to complete\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
@@ -30,6 +33,7 @@ groups:
         for: 5m
         labels:
           severity: critical
+          repeat_interval: 1h
         annotations:
           summary: 'Blackbox probe HTTP failure (instance {{ $labels.instance }})'
           description: 'HTTP status code is not 200-399\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
@@ -38,6 +42,7 @@ groups:
         for: 5m
         labels:
           severity: warning
+          repeat_interval: 1w
         annotations:
           summary: 'Blackbox SSL certificate will expire soon (instance {{ $labels.instance }})'
           description: 'SSL certificate expires in 30 days\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
@@ -46,6 +51,7 @@ groups:
         for: 5m
         labels:
           severity: critical
+          repeat_interval: 1d
         annotations:
           summary: 'Blackbox SSL certificate will expire soon (instance {{ $labels.instance }})'
           description: 'SSL certificate expires in 3 days\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'
@@ -54,6 +60,7 @@ groups:
         for: 5m
         labels:
           severity: critical
+          repeat_interval: 1d
         annotations:
           summary: 'Blackbox SSL certificate expired (instance {{ $labels.instance }})'
           description: 'SSL certificate has expired already\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}'

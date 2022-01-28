@@ -134,3 +134,18 @@
     name: container-pushgateway
     state: started
   become: true
+
+- name: stop container-haproxy.service
+  listen: _restart_haproxy
+  systemd:
+    name: container-haproxy
+    state: stopped
+    daemon_reload: true
+  become: true
+  
+- name: start container-haproxy.service
+  listen: _restart_haproxy
+  systemd:
+    name: container-haproxy
+    state: started
+  become: true

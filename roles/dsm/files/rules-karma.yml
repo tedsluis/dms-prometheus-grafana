@@ -9,3 +9,4 @@ groups:
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1h

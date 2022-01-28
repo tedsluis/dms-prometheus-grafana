@@ -9,3 +9,13 @@ groups:
         for: 1m
         labels:
           severity: critical
+          repeat_interval: 1h
+      - alert: pushgateway-test
+        annotations:
+          description: 'pushgateway is down {{ $labels.instance }}'
+          summary: 'pushgateway is down'
+        expr: up{job="pushgateway"} != 1 or absent(up{job="pushgateway"}) ==1
+        for: 1m
+        labels:
+          severity: critical
+          repeat_interval: 1h
