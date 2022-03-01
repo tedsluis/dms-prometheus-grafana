@@ -48,14 +48,30 @@ Encryption successful
 
 ### End points
 
-* grafana: https://dsm:3000
-* prometheus: https://dsm:9090
-* node exporter: https://dsm:9100/metrics
-* dsm exporter: http://dsm:8080/metrics
-* alertmanager: https://dsm:9093
-* karma: https://dsm:8081/metrics
-* blackbox: https://dsm:9115
-* pushgateway: https://dsm:9091
+| service         | direct access             | access using haproxy                |
+|-----------------|---------------------------|-------------------------------------|
+| alertmanager    | https://dsm:9093          | https://dsm/alertmanager            |
+|                 | https://dsm:9093/metrics  | https://dsm/alertmanager/metrics    |
+| blackbox        | https://dsm:9115          | https://dsm/blackbox                |
+|                 | https://dsm:9115/config   | https://dsm/blackbox/config         |
+|                 | https://dsm:9115/metrics  | https://dsm/blackbox/metrics        |
+| cadvisor        | https://dsm:8082          | https://dsm/cadvisor                |
+|                 | https://dsm:8082/metrics  | https://dsm/cadvisor/metrics        |
+| dsm exporter    | http://dsm:8080           | https://dsm/dsmexporter             |
+|                 | http://dsm:8080/metrics   | https://dsm/dsmexporter/metrics     |
+| grafana         | https://dsm:3000          | https://dsm/granafa                 |
+|                 | https://dsm:3000/metrics  | https://dsm/granafa/metrics         |
+| haproxyexporter | https://dsm:9101          | https://dsm/haproxyexporter         |
+|                 | https://dsm:9101/metrics  | https://dsm/haproxyexporter/metrics |
+| influxdb        | https://dsm:8086          | https://dsm/influxdb                |
+| karma           | https://dsm:8081          | https://dsm/karma                   |
+|                 | https://dsm:8081/metrics  | https://dsm/karma/metrics           |
+| node exporter   | https://dsm:9100          | https://dsm/nodeexporter            |
+|                 | https://dsm:9100/metrics  | https://dsm/nodeexporter/metrics    |
+| prometheus      | https://dsm:9090          | https://dsm/prometheus              |
+|                 | https://dsm:9090/metrics  | https://dsm/prometheus/metrics      |
+| pushgateway     | https://dsm:9091          | https://dsm/pushgateway             |
+|                 | https://dsm:9091/metrics  | https://dsm/pushgateway/metrics     |
 
 ### debug USB to serial cable to connect to the smart meter
 
