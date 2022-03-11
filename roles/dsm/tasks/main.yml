@@ -51,10 +51,17 @@
     - { directory: "/var/lib/dsm/blackbox/certs"                      ,owner: "65534" ,group: "65534" ,mode: "0775" }
     - { directory: "/var/lib/dsm/pushgateway"                         ,owner: "65534" ,group: "65534" ,mode: "0775" }
     - { directory: "/var/lib/dsm/pushgateway/certs"                   ,owner: "65534" ,group: "65534" ,mode: "0775" }
+    - { directory: "/var/lib/dsm/pushgateway/data"                    ,owner: "65534" ,group: "65534" ,mode: "0775" }
     - { directory: "/var/lib/dsm/haproxy"                             ,owner: "99"    ,group: "99"    ,mode: "0775" }
+    - { directory: "/var/lib/dsm/haproxy/certs"                       ,owner: "99"    ,group: "99"    ,mode: "0775" }
     - { directory: "/var/lib/dsm/cadvisor"                            ,owner: "root"  ,group: "root"  ,mode: "0775" }
+    - { directory: "/var/lib/dsm/haproxy-exporter"                    ,owner: "65534" ,group: "65534" ,mode: "0775" }
+    - { directory: "/var/lib/dsm/haproxy-exporter/certs"              ,owner: "65534" ,group: "65534" ,mode: "0775" }
+    - { directory: "/var/lib/dsm/alerta"                              ,owner: "root" ,group: "root" ,mode: "0775" }
+    - { directory: "/var/lib/dsm/alerta/docker-alerta"                ,owner: "root" ,group: "root" ,mode: "0775" }
+    - { directory: "/var/lib/dsm/mongodb"                             ,owner: "root" ,group: "root" ,mode: "0775" }
+    - { directory: "/var/lib/dsm/mongodb/db"                          ,owner: "root" ,group: "root" ,mode: "0775" }
    
-
 # - name: Pull images
 #   containers.podman.podman_image:
 #     name: "{{item}}"
@@ -100,6 +107,26 @@
     name: "cadvisor:{{_cadvisor_version}}"
     path: /var/lib/dsm/cadvisor/
   become: true
+
+# - name: git clone https://github.com/alerta/docker-alerta.git
+#   ansible.builtin.git:
+#     repo: 'https://github.com/alerta/docker-alerta.git'
+#     dest: /var/lib/dsm/alerta/docker-alerta
+#     version: master
+#     force: yes
+#   become: true
+
+# - name: Build alerta image
+#   containers.podman.podman_image:
+#     name: alerta-web:latest
+#     path: /var/lib/dsm/alerta/docker-alerta
+#     build:
+#       format: docker
+#     #   extra_args: 
+#     #     VCS_REF: a1b2c3d4
+#     #     BUILD_DATE: '2022-02-19T10:42:43Z'
+#     #     VERSION: 8.7.0
+#   become: true
 
 # create ca
 
@@ -188,6 +215,8 @@
     - { owner: 'root', group: 'root', mode: '0644', path: '/var/lib/dsm/karma/certs/' }
     - { owner: '65534', group: '65534', mode: '0644', path: '/var/lib/dsm/blackbox/certs/' }
     - { owner: '65534', group: '65534', mode: '0644', path: '/var/lib/dsm/pushgateway/certs/' }
+    - { owner: '99', group: '99', mode: '0644', path: '/var/lib/dsm/haproxy/certs/' }
+    - { owner: '65534', group: '65534', mode: '0644', path: '/var/lib/dsm/haproxy-exporter/certs/' }
   become: true
 
 - name: get CA cert
@@ -277,12 +306,14 @@
     group: 65534
     mode: 0664
   loop:
-    - dsm
-    - linux-server
-    - prometheus
-    - blackbox
     - alertmanager
+    - blackbox
+    - cadvisor
+    - dsm
+    - haproxy
+    - linux-server
     - karma
+    - prometheus
     - pushgateway
   become: true
   notify: _restart_prometheus
@@ -323,6 +354,7 @@
     - { web_path: 'nodeexporter', cert_path: '/etc/ssl/certs' }
     - { web_path: 'blackbox', cert_path: '/config' }
     - { web_path: 'pushgateway', cert_path: '/pushgateway' }
+    - { web_path: 'haproxy-exporter', cert_path: '/etc/ssl/certs' }
   become: true
 
 - name: copy certificate
@@ -341,6 +373,8 @@
     - { owner: 'root', group: 'root', path: '/var/lib/dsm/karma/certs' }
     - { owner: '65534', group: '65534', path: '/var/lib/dsm/blackbox/certs' }
     - { owner: '65534', group: '65534', path: '/var/lib/dsm/pushgateway/certs' }
+    - { owner: '65534', group: '65534', path: '/var/lib/dsm/haproxy-exporter/certs' }
+    - { owner: '99', group: '99', path: '/var/lib/dsm/haproxy/certs' }
   become: true
 
 - name: copy key and remove passphrase
@@ -356,6 +390,47 @@
     - { owner: 'root', group: 'root', path: '/var/lib/dsm/karma/certs' }
     - { owner: '65534', group: '65534', path: '/var/lib/dsm/blackbox/certs' }
     - { owner: '65534', group: '65534', path: '/var/lib/dsm/pushgateway/certs' }
+    - { owner: '65534', group: '65534', path: '/var/lib/dsm/haproxy-exporter/certs' }
+    - { owner: '99', group: '99', path: '/var/lib/dsm/haproxy/certs' }
+  become: true
+
+- name: create /var/lib/dsm/haproxy/haproxy.pem if not exists
+  file:
+    path: /var/lib/dsm/haproxy/haproxy.pem
+    state: touch
+    owner: 99
+    group: 99
+    mode: 0640
+  become: true
+
+- name: get /var/lib/dsm/haproxy/certs/certificate.pem
+  slurp:
+    path: /var/lib/dsm/haproxy/certs/certificate.pem
+  register: _certificate_pem
+  become: true
+
+- name: add certificate.pem to haproxy.pem
+  blockinfile:
+    path: /var/lib/dsm/haproxy/haproxy.pem
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - certificate"
+    insertbefore: BOF
+    block: |
+      {{ (_certificate_pem.content | b64decode) }}
+  become: true
+
+- name: get /var/lib/dsm/haproxy/certs/certificate.key
+  slurp:
+    path: /var/lib/dsm/haproxy/certs/certificate.key
+  register: _certificate_key
+  become: true
+
+- name: add certificate.key to haproxy.pem
+  blockinfile:
+    path: /var/lib/dsm/haproxy/haproxy.pem
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - private key"
+    insertafter: EOF
+    block: |
+      {{ (_certificate_key.content | b64decode) }}
   become: true
 
 - name: chmod
@@ -414,13 +489,13 @@
     mode: 0666
   become: true
   with_items:
-    - dashboard-smartmeter.json
-    - dashboard-nodeexporter.json
-    - dashboard-fijnstof.json
-    - dashboard-prometheus.json
     - dashboard-alertmanager.json
     - dashboard-blackbox.json
+    - dashboard-fijnstof.json
     - dashboard-karma.json
+    - dashboard-nodeexporter.json
+    - dashboard-prometheus.json
+    - dashboard-smartmeter.json
   notify: _restart_grafana
 
 - name: create /var/lib/dsm/grafana/etc/provisioning/dashboards/dashboard.*.yaml
@@ -432,13 +507,13 @@
     mode: 0666
   become: true
   with_items: 
-    - dashboard-smartmeter.yaml
-    - dashboard-nodeexporter.yaml
-    - dashboard-fijnstof.yaml
-    - dashboard-prometheus.yaml
     - dashboard-alertmanager.yaml
     - dashboard-blackbox.yaml
+    - dashboard-fijnstof.yaml
     - dashboard-karma.yaml
+    - dashboard-nodeexporter.yaml
+    - dashboard-prometheus.yaml
+    - dashboard-smartmeter.yaml
   notify: _restart_grafana
 
 - name: influxdb influxdb.conf
@@ -450,15 +525,6 @@
     mode: 0666
   become: true
   notify: _restart_influxdb
-
-- name: touch /var/lib/dsm/pushgateway/pushgateway_persist
-  file:
-    path: /var/lib/dsm/pushgateway/pushgateway_persist
-    state: touch
-    owner: 65534
-    group: 65534
-    mode: 0664
-  become: true
 
 - name: haproxy.cfg
   template:
@@ -480,13 +546,19 @@
       - 8080:8080
       - 8081:8081
       - 8082:8082
+      - 8084:8084
       - 8086:8086
+      - 8090:8090
       - 8404:8404
+      - 8442:8442
+      - 9000:9000
       - 9090:9090
       - 9091:9091
       - 9093:9093
       - 9100:9100
+      - 9101:9101
       - 9115:9115
+      - 27017:27017
   become: true
 
 - name: set baud rate
@@ -504,6 +576,114 @@
   become: true
   failed_when: false
 
+# - name: create alerta container
+#   containers.podman.podman_container:
+#     name: alerta
+#     env:
+#       ADMIN_PASSWORD=admin
+#       DATABASE_URL=mongodb://localhost:27017/monitoring
+#       PLUGINS=prometheus
+#     image: localhost/alerta-web:latest
+#     # command:
+#     #   - '--config.file=/etc/alertmanager/alertmanager.yml'
+#     pod: dsm
+#     state: created
+#     recreate: yes
+#     expose: 8090
+#     # volume:
+#     #   - /var/lib/dsm/alertmanager:/etc/alertmanager:z
+#     generate_systemd:
+#       path: /etc/systemd/system
+#       restart_policy: always
+#       names: true
+#   become: true
+
+- name: create alertmanager container
+  containers.podman.podman_container:
+    name: alertmanager
+    image: quay.io/prometheus/alertmanager:v0.23.0
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.config.file=/etc/alertmanager/web-config.yml'
+      - '--log.level=debug'
+    pod: dsm
+    state: present
+    user: 65534
+    recreate: yes
+    expose: 9093
+    volume:
+      - /var/lib/dsm/alertmanager:/etc/alertmanager:z
+      - /var/lib/dsm/alertmanager/certs/certificate.pem:/etc/ssl/certs/certificate.pem:z
+      - /var/lib/dsm/alertmanager/certs/certificate.key:/etc/ssl/certs/certificate.key:z
+      - /var/lib/dsm/alertmanager/certs/ca-certificate.pem:/etc/ssl/certs/ca-certificate.pem:z
+    generate_systemd:
+      path: /etc/systemd/system
+      restart_policy: always
+      names: true
+  become: true
+  tags: 
+    - containers
+    - alertmanager
+
+- name: create blackbox container
+  containers.podman.podman_container:
+    name: blackbox
+    image: quay.io/prometheus/blackbox-exporter:v0.19.0
+    command:
+      - '--config.file=/config/blackbox.yml'
+      - '--web.config.file=/config/web-config.yml'
+      - '--log.level=debug'
+    pod: dsm
+    state: present
+    user: 65534
+    recreate: yes
+    expose: 9115
+    volume:
+      - /var/lib/dsm/blackbox/blackbox.yml:/config/blackbox.yml:z
+      - /var/lib/dsm/blackbox/web-config.yml:/config/web-config.yml:z
+      - /var/lib/dsm/blackbox/certs/certificate.pem:/config/certificate.pem:z
+      - /var/lib/dsm/blackbox/certs/certificate.key:/config/certificate.key:z
+      - /var/lib/dsm/blackbox/certs/ca-certificate.pem:/config/ca-certificate.pem:z
+    generate_systemd:
+      path: /etc/systemd/system
+      restart_policy: always
+      names: true
+  become: true
+  tags: 
+    - containers
+    - blackbox
+  
+- name: create cadvisor container
+  containers.podman.podman_container:
+    name: cadvisor
+    image:  "localhost/cadvisor:{{_cadvisor_version}}"
+    pod: dsm
+    state: present
+    privileged: yes
+    device: /dev/kmsg:/dev/kmsg:rwm
+    user: 65534
+    recreate: yes
+    expose: 8082
+    healthcheck: '/usr/bin/wget --quiet --tries=1 --spider http://127.0.0.1:8082/healthz || exit 1'
+    healthcheck_start_period: 30s
+    volume:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /dev/disk/:/dev/disk:ro
+      - /var/lib/containers:/var/lib/containers:ro
+      - /etc/machine-id:/etc/machine-id:ro
+    generate_systemd:
+      path: /etc/systemd/system
+      restart_policy: always
+      names: true
+  become: true
+  tags: 
+    - containers
+    - cadvisor
+
 - name: create dsm exporter container
   containers.podman.podman_container:
     name: dsm-exporter
@@ -517,9 +697,157 @@
     expose: 8080
     generate_systemd:
       path: /etc/systemd/system
+      restart_policy: always
+      names: true
+  become: true
+  tags: 
+    - containers
+    - dsmexporter
+
+- name: create grafana container
+  containers.podman.podman_container:
+    name: grafana
+    image: docker.io/grafana/grafana:8.2.3
+    pod: dsm
+    state: present
+    user: 472
+    recreate: yes
+    expose: 3000
+    volume:
+      - /var/lib/dsm/grafana/etc:/etc/grafana:z
+      - /var/lib/dsm/grafana/lib:/var/lib/grafana:z
+    generate_systemd:
+      path: /etc/systemd/system
+      restart_policy: always
+      names: true
+  become: true
+  register: _debug_grafana
+  tags: 
+    - containers
+    - grafana
+
+- name: create haproxy container
+  containers.podman.podman_container:
+    name: haproxy
+    image: docker.io/haproxy:latest
+    pod: dsm
+    state: present
+    user: 99
+    recreate: yes
+    sysctl: 
+      net.ipv4.ip_unprivileged_port_start=0
+    expose: 
+      - 443
+      - 8404
+    volume:
+      - /var/lib/dsm/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:z
+      - /var/lib/dsm/haproxy/haproxy.pem:/usr/local/etc/haproxy/haproxy.pem:z
+      - /var/lib/dsm/haproxy/certs/ca-certificate.pem:/usr/local/etc/haproxy/ca-certificate.pem:z
+    generate_systemd:
+      path: /etc/systemd/system
+      restart_policy: always
+      names: true
+  become: true
+  tags: 
+    - containers
+    - haproxy
+
+- name: create haproxy-exporter container
+  containers.podman.podman_container:
+    name: haproxy-exporter
+    image: quay.io/prometheus/haproxy-exporter:latest
+    command:
+      - '--haproxy.scrape-uri=http://admin:{{_haproxy_password}}@{{inventory_hostname}}:9000/stats;csv'
+      - '--web.config.file=/etc/ssl/certs/web-config.yml'
+      - '--log.level=debug'
+    pod: dsm
+    state: present
+    user: 65534
+    recreate: yes
+    expose: 
+      - 9101
+    volume:
+      - /var/lib/dsm/haproxy-exporter/web-config.yml:/etc/ssl/certs/web-config.yml:z
+      - /var/lib/dsm/haproxy-exporter/certs/certificate.pem:/etc/ssl/certs/certificate.pem:z
+      - /var/lib/dsm/haproxy-exporter/certs/certificate.key:/etc/ssl/certs/certificate.key:z
+      - /var/lib/dsm/haproxy-exporter/certs/ca-certificate.pem:/etc/ssl/certs/ca-certificate.pem:z
+    generate_systemd:
+      path: /etc/systemd/system
+      restart_policy: always
+      names: true
+  become: true
+  tags: 
+    - containers
+    - haproxyexporter
+
+- name: create influxdb container
+  containers.podman.podman_container:
+    name: influxdb
+    image: docker.io/influxdb:1.8.10
+    command: '-config=/etc/influxdb/influxdb.conf'
+    pod: dsm
+    env:
+      INFLUXDB_ADMIN_USER=influxdb
+      INFLUXDB_ADMIN_PASSWORD={{_influxdb_password}}
+      INFLUXDB_DB=luftdaten
+    state: present
+    user: 0
+    recreate: yes
+    expose: 8086
+    volume:
+      - /var/lib/dsm/influxdb/data:/var/lib/influxdb:Z
+      - /var/lib/dsm/influxdb/config/influxdb.conf:/etc/influxdb/influxdb.conf:Z
+    generate_systemd:
+      path: /etc/systemd/system
       restart_policy: on-failure
       names: true
   become: true
+  tags: 
+    - containers
+    - influxdb
+
+- name: create karma container
+  containers.podman.podman_container:
+    name: karma
+    image: ghcr.io/prymitive/karma:latest
+    command:
+      - '--config.file=/etc/karma/karma.yml'
+    pod: dsm
+    state: present
+    #user: 
+    recreate: yes
+    expose: 8081
+    volume:
+      - /var/lib/dsm/karma/karma.yml:/etc/karma/karma.yml:z
+      - /var/lib/dsm/karma/certs/certificate.pem:/etc/ssl/certs/certificate.pem:z
+      - /var/lib/dsm/karma/certs/certificate.key:/etc/ssl/certs/certificate.key:z
+      - /var/lib/dsm/karma/certs/ca-certificate.pem:/etc/ssl/certs/ca-certificate.pem:z
+    generate_systemd:
+      path: /etc/systemd/system
+      restart_policy: always
+      names: true
+  become: true
+  tags: 
+    - containers
+    - karma
+
+
+# - name: create mongodb container
+#   containers.podman.podman_container:
+#     name: mongodb
+#     image: docker.io/mongo:5.0.6
+#     pod: dsm
+#     state: present
+#     #user: 
+#     recreate: yes
+#     expose: 27017
+#     volume:
+#       - /var/lib/dsm/mongodb:/data/db:z
+#     generate_systemd:
+#       path: /etc/systemd/system
+#       restart_policy: always
+#       names: true
+#   become: true
   
 - name: create node-exporter container
   containers.podman.podman_container:
@@ -545,11 +873,14 @@
       restart_policy: on-failure
       names: true
   become: true
+  tags: 
+    - containers
+    - nodeexporter
 
 - name: create prometheus container
   containers.podman.podman_container:
     name: prometheus
-    image: quay.io/prometheus/prometheus:v2.31.0
+    image: quay.io/prometheus/prometheus:v2.33.1
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -558,7 +889,6 @@
       - '--storage.tsdb.retention.time=1500d'
       - '--storage.tsdb.retention.size=15GB'
       - '--web.config.file=/etc/prometheus/web-config.yml'
-      - '--web.external-url=https://dsm:9090'
       - '--log.level=debug'
     pod: dsm
     state: present
@@ -576,125 +906,9 @@
       restart_policy: always
       names: true
   become: true
-
-- name: create alertmanager container
-  containers.podman.podman_container:
-    name: alertmanager
-    image: quay.io/prometheus/alertmanager:v0.23.0
-    command:
-      - '--config.file=/etc/alertmanager/alertmanager.yml'
-      - '--storage.path=/alertmanager'
-      - '--web.config.file=/etc/alertmanager/web-config.yml'
-      - '--web.external-url=https://dsm:9093'
-      - '--log.level=debug'
-    pod: dsm
-    state: present
-    user: 65534
-    recreate: yes
-    expose: 9093
-    volume:
-      - /var/lib/dsm/alertmanager:/etc/alertmanager:z
-      - /var/lib/dsm/alertmanager/certs/certificate.pem:/etc/ssl/certs/certificate.pem:z
-      - /var/lib/dsm/alertmanager/certs/certificate.key:/etc/ssl/certs/certificate.key:z
-      - /var/lib/dsm/alertmanager/certs/ca-certificate.pem:/etc/ssl/certs/ca-certificate.pem:z
-    generate_systemd:
-      path: /etc/systemd/system
-      restart_policy: on-failure
-      names: true
-  become: true
-
-- name: create influxdb container
-  containers.podman.podman_container:
-    name: influxdb
-    image: docker.io/influxdb:1.8.10
-    command: '-config=/etc/influxdb/influxdb.conf'
-    pod: dsm
-    env:
-      INFLUXDB_ADMIN_USER=influxdb
-      INFLUXDB_ADMIN_PASSWORD={{_influxdb_password}}
-      INFLUXDB_DB=luftdaten
-    state: present
-    user: 0
-    recreate: yes
-    expose: 8086
-    volume:
-      - /var/lib/dsm/influxdb/data:/var/lib/influxdb:Z
-      - /var/lib/dsm/influxdb/config/influxdb.conf:/etc/influxdb/influxdb.conf:Z
-    generate_systemd:
-      path: /etc/systemd/system
-      restart_policy: on-failure
-      names: true
-  become: true
-
-- name: create grafana container
-  containers.podman.podman_container:
-    name: grafana
-    image: docker.io/grafana/grafana:8.2.3
-    pod: dsm
-    state: present
-    user: 472
-    recreate: yes
-    expose: 3000
-    volume:
-      - /var/lib/dsm/grafana/etc:/etc/grafana:z
-      - /var/lib/dsm/grafana/lib:/var/lib/grafana:z
-    generate_systemd:
-      path: /etc/systemd/system
-      restart_policy: always
-      names: true
-  become: true
-  register: _debug_grafana
-
-- debug:
-    var: _debug_grafana
-
-- name: create karma container
-  containers.podman.podman_container:
-    name: karma
-    image: ghcr.io/prymitive/karma:latest
-    command:
-      - '--config.file=/etc/karma/karma.yml'
-    pod: dsm
-    state: present
-    #user: 
-    recreate: yes
-    expose: 8081
-    volume:
-      - /var/lib/dsm/karma/karma.yml:/etc/karma/karma.yml:z
-      - /var/lib/dsm/karma/certs/certificate.pem:/etc/ssl/certs/certificate.pem:z
-      - /var/lib/dsm/karma/certs/certificate.key:/etc/ssl/certs/certificate.key:z
-      - /var/lib/dsm/karma/certs/ca-certificate.pem:/etc/ssl/certs/ca-certificate.pem:z
-    generate_systemd:
-      path: /etc/systemd/system
-      restart_policy: always
-      names: true
-  become: true
-
-- name: create blackbox container
-  containers.podman.podman_container:
-    name: blackbox
-    image: quay.io/prometheus/blackbox-exporter:v0.19.0
-    command:
-      - '--config.file=/config/blackbox.yml'
-      - '--web.config.file=/config/web-config.yml'
-      - '--web.external-url=https://dsm:9115'
-      - '--log.level=debug'
-    pod: dsm
-    state: present
-    user: 65534
-    recreate: yes
-    expose: 9115
-    volume:
-      - /var/lib/dsm/blackbox/blackbox.yml:/config/blackbox.yml:z
-      - /var/lib/dsm/blackbox/web-config.yml:/config/web-config.yml:z
-      - /var/lib/dsm/blackbox/certs/certificate.pem:/config/certificate.pem:z
-      - /var/lib/dsm/blackbox/certs/certificate.key:/config/certificate.key:z
-      - /var/lib/dsm/blackbox/certs/ca-certificate.pem:/config/ca-certificate.pem:z
-    generate_systemd:
-      path: /etc/systemd/system
-      restart_policy: on-failure
-      names: true
-  become: true
+  tags: 
+    - containers
+    - prometheus
 
 - name: create pushgateway container
   containers.podman.podman_container:
@@ -702,17 +916,16 @@
     image: quay.io/prometheus/pushgateway:latest
     command:
       - '--web.config.file=/pushgateway/web-config.yml'
-      - '--web.external-url=https://dsm:9091'
       - '--web.enable-admin-api'
       - '--log.level=debug'
-      - '--persistence.file="/pushgateway/pushgateway_persist"'
+      - '--persistence.file="/pushgateway/data/pushgateway_persist"'
     pod: dsm
     state: present
     user: 65534
     recreate: yes
     expose: 9091
     volume:
-      - /var/lib/dsm/pushgateway/web-config.yml:/pushgateway/pushgateway_persist:z
+      - /var/lib/dsm/pushgateway/data:/pushgateway/data:z
       - /var/lib/dsm/pushgateway/web-config.yml:/pushgateway/web-config.yml:z
       - /var/lib/dsm/pushgateway/certs/certificate.pem:/pushgateway/certificate.pem:z
       - /var/lib/dsm/pushgateway/certs/certificate.key:/pushgateway/certificate.key:z
@@ -722,58 +935,9 @@
       restart_policy: on-failure
       names: true
   become: true
-
-- name: create cadvisor container
-  containers.podman.podman_container:
-    name: cadvisor
-    image:  "localhost/cadvisor:{{_cadvisor_version}}"
-    pod: dsm
-    state: present
-    privileged: yes
-    device: /dev/kmsg:/dev/kmsg:rwm
-    user: 65534
-    recreate: yes
-    expose: 8082
-    healthcheck: '/usr/bin/wget --quiet --tries=1 --spider http://127.0.0.1:8082/healthz || exit 1'
-    healthcheck_start_period: 30s
-    volume:
-      - /:/rootfs:ro
-      - /var/run:/var/run:ro
-      - /sys:/sys:ro
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-      - /dev/disk/:/dev/disk:ro
-      - /var/lib/containers:/var/lib/containers:ro
-      - /etc/machine-id:/etc/machine-id:ro
-    generate_systemd:
-      path: /etc/systemd/system
-      restart_policy: on-failure
-      names: true
-  become: true
-  tags: cadvisor
-
-- name: create haproxy container
-  containers.podman.podman_container:
-    name: haproxy
-    image: docker.io/haproxytech/haproxy-alpine:latest
-    # command:
-    #   - 'haproxy -c -f /usr/local/etc/haproxy/haproxy.cfg'
-    pod: dsm
-    state: present
-    user: 99
-    recreate: yes
-    sysctl: 
-      net.ipv4.ip_unprivileged_port_start=0
-    expose: 
-      - 443
-      - 8404
-    volume:
-      - /var/lib/dsm/haproxy:/usr/local/etc/haproxy:z
-    generate_systemd:
-      path: /etc/systemd/system
-      restart_policy: always
-      names: true
-  become: true
-  tags: haproxy
+  tags: 
+    - containers
+    - pushgateway
 
 - name: start and enable services
   systemd:
@@ -782,42 +946,74 @@
     daemon_reload: true
     enabled: true
   loop:
-    - container-dsm-exporter
-    - container-node-exporter
-    - container-prometheus
     - container-alertmanager
-    - container-influxdb
-    - container-grafana
-    - container-karma
     - container-blackbox
-    - container-pushgateway
     - container-cadvisor
+    - container-dsm-exporter
+    - container-grafana
+    - container-influxdb
+    - container-karma
+    # - container-mongodb
     - container-haproxy
+    - container-haproxy-exporter
+    - container-node-exporter
+    - container-pushgateway
+    - container-prometheus
   become: true
+  tags: 
+    - containers
+    - alertmanager
+    - blackbox
+    - cadvisor
+    - dsmexporter
+    - grafana
+    - influxdb
+    - karma
+    - haproxy
+    - haproxyexporter
+    - nodeexporter
+    - pushgateway
+    - prometheus
 
 - name: container state
   shell: |
     podman ps -a --format "{{ '{{' }}.Status{{ '}}' }}  {{ '{{' }}.Names{{ '}}' }}  {{ '{{' }}.ID{{ '}}' }}" --filter 'name={{item}}'
   register: _container_state
   loop:
+    - alertmanager
+    - blackbox
+    - cadvisor
     - dsm-exporter
+    - grafana
+    - haproxy
+    - haproxy-exporter
+    - influxdb
+    - karma
     - node-exporter
     - prometheus
-    - alertmanager
-    - influxdb
-    - grafana
-    - karma
-    - blackbox
     - pushgateway
-    - cadvisor
-    - haproxy
   become: true
+  tags: 
+    - containers
+    - alertmanager
+    - blackbox
+    - cadvisor
+    - dsmexporter
+    - grafana
+    - influxdb
+    - karma
+    - haproxy
+    - haproxyexporter
+    - nodeexporter
+    - pushgateway
+    - prometheus
 
 - debug:
     var: _container_state
 
 - name: trigger handelers
   meta: flush_handlers
+  tags: container
 
 - name: "pause until grafana is reachable"
   uri:
