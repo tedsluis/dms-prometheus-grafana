@@ -63,7 +63,7 @@ scrape_configs:
     scrape_interval: 10s
     static_configs:
       - targets: 
-        - {{inventory_hostname}}:8080
+        - {{inventory_hostname}}:8442
 
   - job_name: blackbox-exporter
     # metrics_path defaults to '/metrics'
@@ -83,7 +83,7 @@ scrape_configs:
       module: [http_2xx]
     static_configs:
       - targets:
-        - http://{{inventory_hostname}}:8080
+        - http://localhost:8080
         - http://ipv4.download.thinkbroadband.com/5MB.zip
     relabel_configs:
       - source_labels: [__address__]
@@ -104,9 +104,12 @@ scrape_configs:
       - targets:
         - https://{{inventory_hostname}}:3000
         - https://{{inventory_hostname}}:8081
+        - https://{{inventory_hostname}}:8082
+        - https://{{inventory_hostname}}:8442
         - https://{{inventory_hostname}}:9090
-        - https://{{inventory_hostname}}:9100
+        - https://{{inventory_hostname}}:9091
         - https://{{inventory_hostname}}:9093
+        - https://{{inventory_hostname}}:9100
         - https://{{inventory_hostname}}:9115
     relabel_configs:
       - source_labels: [__address__]
@@ -179,6 +182,7 @@ scrape_configs:
       - targets: 
           - 8.8.8.8
           - 8.8.4.4
+          - 192.168.11.1
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -197,18 +201,29 @@ scrape_configs:
     - targets:
       - {{inventory_hostname}}:9091
 
-  # haproxy
-  - job_name: haproxy
-    # scheme: https
-    # tls_config:
-    #   ca_file: /etc/ssl/certs/ca-certificate.pem
-    static_configs:
-    - targets:
-      - {{inventory_hostname}}:8404
-
   # cadvisor
   - job_name: cadvisor
     scrape_interval: 5s
     static_configs:
     - targets:
       - {{inventory_hostname}}:8082
+
+  # haproxy_exporter
+  - job_name: haproxy-exporter
+    scheme: https
+    tls_config:
+      ca_file: /etc/ssl/certs/ca-certificate.pem
+    scrape_interval: 5s
+    static_configs:
+    - targets:
+      - {{inventory_hostname}}:9101
+
+  # grafana
+  - job_name: grafana
+    scheme: https
+    tls_config:
+      ca_file: /etc/ssl/certs/ca-certificate.pem
+    scrape_interval: 5s
+    static_configs:
+    - targets:
+      - {{inventory_hostname}}:3000
