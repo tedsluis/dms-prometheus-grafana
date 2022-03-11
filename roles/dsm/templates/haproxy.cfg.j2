@@ -1,6 +1,5 @@
 global
-    log /dev/log    local0
-    log /dev/log    local1 notice
+    log stdout format raw daemon debug
     # chroot /var/lib/haproxy
     # stats socket /run/haproxy/admin.sock mode 660 level admin
     stats timeout 30s
@@ -22,11 +21,14 @@ global
 
 defaults
     log global
-    option tcplog
-    mode tcp
+    {% raw %}log-format '%ci:%cp [%t] %ft %b/%s %Tq/%Tw/%Tc/%Tr/%Tt %ST %B %CC %CS %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %hr %hs {%[ssl_c_verify],%{+Q}[ssl_c_s_dn],%{+Q}[ssl_c_i_dn],%{+Q}[ssl_c_notafter]} %{+Q}r'
+    {% endraw %}
+    mode http
     option http-server-close
     timeout connect 1s
     timeout client  20s
+    timeout http-keep-alive 10s
+    timeout http-request    5s
     timeout server  20s
     timeout client-fin 20s
     timeout tunnel 1h
@@ -38,19 +40,25 @@ defaults
     # errorfile 503 /etc/haproxy/errors/503.http
     # errorfile 504 /etc/haproxy/errors/504.http
 
-# frontend stats
-#    bind *:8404
-#    option http-use-htx
-#    http-request use-service prometheus-exporter if { path /metrics }
-#    stats enable
-#    stats uri /stats
-#    stats refresh 10s
-    
-frontend https
-    bind *:443
-    mode tcp
-    default_backend dsm
+listen stats
+    bind *:9000 ssl crt /usr/local/etc/haproxy/haproxy.pem ca-file /usr/local/etc/haproxy/ca-certificate.pem
+    mode http
+    log global
+    maxconn 10
+    timeout queue 100s
+    stats enable
+    stats show-node
+    stats uri /stats
+    stats refresh 5s
+    stats auth admin:{{_haproxy_password}}
 
-backend dsm
-    mode tcp
-    server prometheus localhost:9090
+frontend https
+    mode http
+    bind *:8442 ssl crt /usr/local/etc/haproxy/haproxy.pem ca-file /usr/local/etc/haproxy/ca-certificate.pem
+    use_backend dsmexporter
+
+backend dsmexporter
+    mode http
+    http-request set-header Host localhost:8080
+    server cadvisor localhost:8080 check
+
