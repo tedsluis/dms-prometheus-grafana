@@ -1,0 +1,12 @@
+groups:
+    - name: cadvisor.rules
+      rules:
+      - alert: cadvisor-down
+        annotations:
+          description: 'cadvisor is down {{ $labels.instance }}'
+          summary: 'cadvisor is down'
+        expr: up{job="cadvisor"} != 1 or absent(up{job="cadvisor"}) ==1
+        for: 1m
+        labels:
+          severity: critical
+          repeat_interval: 1h
