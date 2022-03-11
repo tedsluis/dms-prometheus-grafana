@@ -1,0 +1,12 @@
+groups:
+    - name: haproxy-exporter.rules
+      rules:
+      - alert: haproxy-exporter-down
+        annotations:
+          description: 'haproxy-exporter is down {{ $labels.instance }}'
+          summary: 'haproxy-exporter is down'
+        expr: up{job="haproxy-exporter"} != 1 or absent(up{job="haproxy-exporter"}) ==1
+        for: 1m
+        labels:
+          severity: critical
+          repeat_interval: 1h
