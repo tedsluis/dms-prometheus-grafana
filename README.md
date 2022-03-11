@@ -55,10 +55,10 @@ Encryption successful
 | blackbox         | https://dsm:9115          |                                     |
 |                  | https://dsm:9115/config   |                                     |
 |                  | https://dsm:9115/metrics  |                                     |
-| cadvisor         | https://dsm:8082          | https://dsm:8442                    |
-|                  | https://dsm:8082/metrics  | https://dsm:8442/metrics            |
-| dsm exporter     | http://dsm:8080           |                                     |
-|                  | http://dsm:8080/metrics   |                                     |
+| cadvisor         | https://dsm:8082          |                                     |
+|                  | https://dsm:8082/metrics  |                                     |
+| dsm exporter     | http://dsm:8080           | https://dsm:8442                    |
+|                  | http://dsm:8080/metrics   | https://dsm:8442/metrics            |
 | grafana          | https://dsm:3000          |                                     |
 |                  | https://dsm:3000/metrics  |                                     |
 | haproxy exporter | https://dsm:9101          |                                     |
