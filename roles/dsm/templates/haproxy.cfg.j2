@@ -52,10 +52,22 @@ listen stats
     stats refresh 5s
     stats auth admin:{{_haproxy_password}}
 
-frontend dsmexporter
+frontend cadvisor
     mode http
     bind *:8442 ssl crt /usr/local/etc/haproxy/haproxy.pem ca-file /usr/local/etc/haproxy/ca-certificate.pem
+    use_backend cadvisor
+
+frontend dsmexporter
+    mode http
+    bind *:8440 ssl crt /usr/local/etc/haproxy/haproxy.pem ca-file /usr/local/etc/haproxy/ca-certificate.pem
     use_backend dsmexporter
+
+backend cadvisor
+    mode http
+    http-request add-header X-Forwarded-Proto "https" if { ssl_fc }
+    http-response set-header Content-Security-Policy upgrade-insecure-requests
+    option forwardfor
+    server cadvisor localhost:8082 check
 
 backend dsmexporter
     mode http
