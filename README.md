@@ -1,12 +1,17 @@
 
 # De Slimme meter uitlezen met prometheus en grafana
 
-* de slimme meter exporter gotsmart
+* dsm-expoter (de slimme meter exporter gotsmart)
 * prometheus
 * node exporter
 * grafana
 * alertmanager (alerts to slack)
-* influxdb (voor toevoegen buitentemperatuur, fijnstof en luchtvochtiheid)
+* karma
+* cadvisor
+* haproxy
+* haproxy-exporter
+* blackbox
+* influxdb (voor toevoegen buitentemperatuur, fijnstof en luchtvochtigheid)
 
 ### Deployed on
 
@@ -55,10 +60,10 @@ Encryption successful
 | blackbox         | https://dsm:9115          |                                     |
 |                  | https://dsm:9115/config   |                                     |
 |                  | https://dsm:9115/metrics  |                                     |
-| cadvisor         | https://dsm:8082          |                                     |
-|                  | https://dsm:8082/metrics  |                                     |
-| dsm exporter     | http://dsm:8080           | https://dsm:8442                    |
-|                  | http://dsm:8080/metrics   | https://dsm:8442/metrics            |
+| cadvisor         | http://dsm:8082           | https://dsm:8442                    |
+|                  | http://dsm:8082/metrics   | https://dsm:8442/metrics            |
+| dsm exporter     | http://dsm:8080           | https://dsm:8440                    |
+|                  | http://dsm:8080/metrics   | https://dsm:8440/metrics            |
 | grafana          | https://dsm:3000          |                                     |
 |                  | https://dsm:3000/metrics  |                                     |
 | haproxy exporter | https://dsm:9101          |                                     |
@@ -111,7 +116,17 @@ root@dsm ~]# stty -F /dev/ttyUSB0 115200
 
 * de slimme meter exporter gotsmart: https://raw.githubusercontent.com/Nozzie/gotsmart
 
-### grafana dashboard
+### grafana dashboards
+
+https://dsm:3000/d/smartmeter/smartmeter?orgId=1&refresh=5s
+https://dsm:3000/d/alertmanager/alertmanager?orgId=1&refresh=5m
+https://dsm:3000/d/blackbox/blackbox-exporter?orgId=1&refresh=10s
+https://dsm:3000/d/karma/karma?orgId=1&refresh=30s
+https://dsm:3000/d/nodeexporter/node-exporter-server-metrics?orgId=1
+https://dsm:3000/d/prometheus/prometheus-2-0-overview?orgId=1&refresh=30s
+https://dsm:3000/d/fijnstof/fijnstof-luftdaten-info?orgId=1&refresh=5m
+
+### screenshots
 
 <a href="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard1.png"
  target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/dsm-prometheus-grafana/main/media/smartdashboard1.png"
