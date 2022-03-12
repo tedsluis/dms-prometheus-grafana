@@ -61,9 +61,12 @@ scrape_configs:
 
   - job_name: dsm-exporter
     scrape_interval: 10s
+    scheme: https
+    tls_config:
+      ca_file: /etc/ssl/certs/ca-certificate.pem
     static_configs:
       - targets: 
-        - {{inventory_hostname}}:8442
+        - {{inventory_hostname}}:8440
 
   - job_name: blackbox-exporter
     # metrics_path defaults to '/metrics'
@@ -84,6 +87,7 @@ scrape_configs:
     static_configs:
       - targets:
         - http://localhost:8080
+        - http://localhost:8082
         - http://ipv4.download.thinkbroadband.com/5MB.zip
     relabel_configs:
       - source_labels: [__address__]
@@ -104,7 +108,7 @@ scrape_configs:
       - targets:
         - https://{{inventory_hostname}}:3000
         - https://{{inventory_hostname}}:8081
-        - https://{{inventory_hostname}}:8082
+        - https://{{inventory_hostname}}:8440
         - https://{{inventory_hostname}}:8442
         - https://{{inventory_hostname}}:9090
         - https://{{inventory_hostname}}:9091
@@ -203,10 +207,13 @@ scrape_configs:
 
   # cadvisor
   - job_name: cadvisor
+    scheme: https
+    tls_config:
+      ca_file: /etc/ssl/certs/ca-certificate.pem
     scrape_interval: 5s
     static_configs:
     - targets:
-      - {{inventory_hostname}}:8082
+      - {{inventory_hostname}}:8442
 
   # haproxy_exporter
   - job_name: haproxy-exporter
