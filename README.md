@@ -118,13 +118,13 @@ root@dsm ~]# stty -F /dev/ttyUSB0 115200
 
 ### grafana dashboards
 
-https://dsm:3000/d/smartmeter/smartmeter?orgId=1&refresh=5s
-https://dsm:3000/d/alertmanager/alertmanager?orgId=1&refresh=5m
-https://dsm:3000/d/blackbox/blackbox-exporter?orgId=1&refresh=10s
-https://dsm:3000/d/karma/karma?orgId=1&refresh=30s
-https://dsm:3000/d/nodeexporter/node-exporter-server-metrics?orgId=1
-https://dsm:3000/d/prometheus/prometheus-2-0-overview?orgId=1&refresh=30s
-https://dsm:3000/d/fijnstof/fijnstof-luftdaten-info?orgId=1&refresh=5m
+* https://dsm:3000/d/smartmeter/smartmeter?orgId=1&refresh=5s
+* https://dsm:3000/d/alertmanager/alertmanager?orgId=1&refresh=5m
+* https://dsm:3000/d/blackbox/blackbox-exporter?orgId=1&refresh=10s
+* https://dsm:3000/d/karma/karma?orgId=1&refresh=30s
+* https://dsm:3000/d/nodeexporter/node-exporter-server-metrics?orgId=1
+* https://dsm:3000/d/prometheus/prometheus-2-0-overview?orgId=1&refresh=30s
+* https://dsm:3000/d/fijnstof/fijnstof-luftdaten-info?orgId=1&refresh=5m
 
 ### screenshots
 
