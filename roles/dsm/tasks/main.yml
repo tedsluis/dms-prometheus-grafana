@@ -496,6 +496,9 @@
     - dashboard-nodeexporter.json
     - dashboard-prometheus.json
     - dashboard-smartmeter.json
+    - dashboard-haproxy.json
+    - dashboard-cadvisor.json
+    - dashboard-scrapers-availability.json
   notify: _restart_grafana
 
 - name: create /var/lib/dsm/grafana/etc/provisioning/dashboards/dashboard.*.yaml
@@ -514,6 +517,9 @@
     - dashboard-nodeexporter.yaml
     - dashboard-prometheus.yaml
     - dashboard-smartmeter.yaml
+    - dashboard-haproxy.yaml
+    - dashboard-cadvisor.yaml
+    - dashboard-scrapers-availability.yaml
   notify: _restart_grafana
 
 - name: influxdb influxdb.conf
@@ -758,7 +764,7 @@
     name: haproxy-exporter
     image: quay.io/prometheus/haproxy-exporter:latest
     command:
-      - '--haproxy.scrape-uri=http://admin:{{_haproxy_password}}@{{inventory_hostname}}:9000/stats;csv'
+      - '--haproxy.scrape-uri=https://admin:{{_haproxy_password}}@{{inventory_hostname}}:9000/stats;csv'
       - '--web.config.file=/etc/ssl/certs/web-config.yml'
       - '--log.level=debug'
     pod: dsm
