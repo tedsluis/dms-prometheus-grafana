@@ -502,24 +502,24 @@
   notify: _restart_grafana
 
 - name: create /var/lib/dsm/grafana/etc/provisioning/dashboards/dashboard.*.yaml
-  copy:
-    src: "{{item}}"
-    dest: "/var/lib/dsm/grafana/etc/provisioning/dashboards/{{item}}"
+  template:
+    src: grafana-dashboard.yaml.j2
+    dest: "/var/lib/dsm/grafana/etc/provisioning/dashboards/{{item._dashboard_filename}}"
     owner: 472
     group: 472
     mode: 0666
   become: true
   with_items: 
-    - dashboard-alertmanager.yaml
-    - dashboard-blackbox.yaml
-    - dashboard-fijnstof.yaml
-    - dashboard-karma.yaml
-    - dashboard-nodeexporter.yaml
-    - dashboard-prometheus.yaml
-    - dashboard-smartmeter.yaml
-    - dashboard-haproxy.yaml
-    - dashboard-cadvisor.yaml
-    - dashboard-scrapers-availability.yaml
+    - { _dashboard_name: 'alertmanager', _dashboard_filename: 'dashboard-alertmanager.json' } 
+    - { _dashboard_name: 'blackbox', _dashboard_filename: 'dashboard-blackbox.json' }
+    - { _dashboard_name: 'fijnstof', _dashboard_filename: 'dashboard-fijnstof.json' }
+    - { _dashboard_name: 'karma', _dashboard_filename: 'dashboard-karma.json' }
+    - { _dashboard_name: 'nodeexporter', _dashboard_filename: 'dashboard-nodeexporter.json' }
+    - { _dashboard_name: 'prometheus', _dashboard_filename: 'dashboard-prometheus.json' }
+    - { _dashboard_name: 'de slimme meter', _dashboard_filename: 'dashboard-smartmeter.json' }
+    - { _dashboard_name: 'haproxy-exporter', _dashboard_filename: 'dashboard-haproxy.json' }
+    - { _dashboard_name: 'cadvisor', _dashboard_filename: 'dashboard-cadvisor.json' }
+    - { _dashboard_name: 'scapers availability', _dashboard_filename: 'dashboard-scrapers-availability.json' }
   notify: _restart_grafana
 
 - name: influxdb influxdb.conf
