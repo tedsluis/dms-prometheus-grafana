@@ -2356,7 +2356,7 @@
     ]
   },
   "timezone": "browser",
-  "title": "Node Exporter Server Metrics",
+  "title": "Node Exporter",
   "uid": "nodeexporter",
   "version": 2
 }
