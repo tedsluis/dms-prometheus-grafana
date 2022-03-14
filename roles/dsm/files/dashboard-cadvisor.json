@@ -1060,7 +1060,7 @@
       ]
     },
     "timezone": "browser",
-    "title": "Docker monitoring with node selection",
+    "title": "cadvisor container stats",
     "uid": "cadvisor",
     "version": 13
   }
