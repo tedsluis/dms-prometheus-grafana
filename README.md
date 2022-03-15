@@ -1,9 +1,9 @@
 
 # De Slimme meter uitlezen met prometheus en grafana
 
-* dsm-expoter (de slimme meter exporter gotsmart)
+* dsm-exporter (de slimme meter exporter gotsmart)
 * prometheus
-* node exporter
+* node-exporter
 * grafana
 * alertmanager (alerts to slack)
 * karma
@@ -20,14 +20,28 @@
 
 ### Requierments
 
+* openssl key pair (public and private key)
+
+On the source host: 
+
+* some_user (for example tedsluis)
+* private key in /home/some_user/.ssh/
 * pip install ansible 
 * ansible-galaxy collection install containers.podman
-* slimme meter
-* P1 kabel
+* P1 cable connected to slimme meter
+
+On the target host:
+
+* ansible user
+* permissions for ansible user to become root without password
+* public key in /home/ansible/.ssh/authorized_keys
+
+Source and target host can be the same!
 
 ### Prepare deployment
 
-Replace encrypted ansible-vault secrets with your own.
+Replace the secrets in roles/dsm/defaults/main.yml with your own. This can be plain text (not recommended) or using ansible-vault encrypted secrets.
+(Be sure you store your own encryption key in /home/some_user/.vault_pass.txt while using ansible-vault)
 
 
 ```bash
@@ -66,7 +80,8 @@ Encryption successful
 |                  | http://dsm:8080/metrics   | https://dsm:8440/metrics            |
 | grafana          | https://dsm:3000          |                                     |
 |                  | https://dsm:3000/metrics  |                                     |
-| haproxy exporter | https://dsm:9101          |                                     |
+| haproxy exporter | https://dsm:9000          |                                     |
+|                  | https://dsm:9101          |                                     |
 |                  | https://dsm:9101/metrics  |                                     |
 | influxdb         | https://dsm:8086          |                                     |
 | karma            | https://dsm:8081          |                                     |
