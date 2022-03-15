@@ -3454,7 +3454,7 @@
         "30d"
       ]
     },
-    "timezone": "",
+    "timezone": "browser",
     "title": "Prometheus",
     "uid": "prometheus",
     "version": 2

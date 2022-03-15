@@ -2037,7 +2037,7 @@
       "30d"
     ]
   },
-  "timezone": "",
+  "timezone": "browser",
   "title": "Smartmeter",
   "uid": "smartmeter",
   "version": 2

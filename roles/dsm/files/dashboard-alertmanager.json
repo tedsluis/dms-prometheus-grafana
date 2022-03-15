@@ -3738,7 +3738,7 @@
       "30d"
     ]
   },
-  "timezone": "",
+  "timezone": "browser",
   "title": "Alertmanager",
   "uid": "alertmanager",
   "version": 2

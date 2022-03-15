@@ -878,7 +878,7 @@
       "30d"
     ]
   },
-  "timezone": "",
+  "timezone": "browser",
   "title": "Karma",
   "uid": "karma",
   "version": 4

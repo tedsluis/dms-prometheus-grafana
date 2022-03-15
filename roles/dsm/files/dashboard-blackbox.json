@@ -1115,7 +1115,7 @@
       "30d"
     ]
   },
-  "timezone": "",
+  "timezone": "browser",
   "title": "Blackbox Exporter",
   "uid": "blackbox",
   "version": 8

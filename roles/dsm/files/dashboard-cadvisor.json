@@ -1060,7 +1060,7 @@
       ]
     },
     "timezone": "browser",
-    "title": "cadvisor container stats",
+    "title": "Cadvisor container stats",
     "uid": "cadvisor",
     "version": 13
   }

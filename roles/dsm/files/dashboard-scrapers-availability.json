@@ -1,365 +1,365 @@
 {
-    "annotations": {
-      "list": [
-        {
-          "builtIn": 1,
-          "datasource": "-- Grafana --",
-          "enable": true,
-          "hide": true,
-          "iconColor": "rgba(0, 211, 255, 1)",
-          "name": "Annotations & Alerts",
-          "target": {
-            "limit": 100,
-            "matchAny": false,
-            "tags": [],
-            "type": "dashboard"
-          },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
           "type": "dashboard"
-        }
-      ]
-    },
-    "editable": true,
-    "fiscalYearStartMonth": 0,
-    "gnetId": null,
-    "graphTooltip": 0,
-    "id": 17834,
-    "links": [],
-    "liveNow": false,
-    "panels": [
-      {
-        "datasource": null,
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            },
-            "custom": {
-              "axisLabel": "",
-              "axisPlacement": "auto",
-              "barAlignment": 0,
-              "drawStyle": "line",
-              "fillOpacity": 0,
-              "gradientMode": "none",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
-              },
-              "lineInterpolation": "linear",
-              "lineStyle": {
-                "fill": "solid"
-              },
-              "lineWidth": 1,
-              "pointSize": 4,
-              "scaleDistribution": {
-                "type": "linear"
-              },
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "normal"
-              },
-              "thresholdsStyle": {
-                "mode": "off"
-              }
-            },
-            "decimals": 0,
-            "mappings": [],
-            "max": 10,
-            "min": 0,
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 80
-                }
-              ]
-            },
-            "unit": "string"
-          },
-          "overrides": []
         },
-        "gridPos": {
-          "h": 10,
-          "w": 24,
-          "x": 0,
-          "y": 0
-        },
-        "id": 2,
-        "options": {
-          "legend": {
-            "calcs": [],
-            "displayMode": "list",
-            "placement": "bottom"
-          },
-          "tooltip": {
-            "mode": "single"
-          }
-        },
-        "targets": [
-          {
-            "exemplar": true,
-            "expr": "1 - up{job=\"grafana\"}",
-            "interval": "",
-            "legendFormat": "grafana",
-            "refId": "A"
-          },
-          {
-            "exemplar": true,
-            "expr": "1 - up{job=\"karma\"}",
-            "hide": false,
-            "interval": "",
-            "legendFormat": "karma",
-            "refId": "B"
-          },
-          {
-            "exemplar": true,
-            "expr": "1 - up{job=\"cadvisor\"}",
-            "hide": false,
-            "interval": "",
-            "legendFormat": "cadvisor",
-            "refId": "C"
-          },
-          {
-            "exemplar": true,
-            "expr": "1 - up{job=\"dsm-exporter\"}",
-            "hide": false,
-            "interval": "",
-            "legendFormat": "dsm-exporter",
-            "refId": "D"
-          },
-          {
-            "exemplar": true,
-            "expr": "1- up{job=\"prometheus\"}",
-            "hide": false,
-            "interval": "",
-            "legendFormat": "prometheus",
-            "refId": "E"
-          },
-          {
-            "exemplar": true,
-            "expr": "1- up{job=\"pushgateway\"}",
-            "hide": false,
-            "interval": "",
-            "legendFormat": "pushgateway",
-            "refId": "F"
-          },
-          {
-            "exemplar": true,
-            "expr": "1 - up{job=\"alertmanager\"}",
-            "hide": false,
-            "interval": "",
-            "legendFormat": "alertmanager",
-            "refId": "G"
-          },
-          {
-            "exemplar": true,
-            "expr": "1- up{job=\"node\"}",
-            "hide": false,
-            "interval": "",
-            "legendFormat": "node-exporter",
-            "refId": "H"
-          },
-          {
-            "exemplar": true,
-            "expr": "1 - up{job=\"haproxy-exporter\"}",
-            "hide": false,
-            "interval": "",
-            "legendFormat": "haproxy-exporter",
-            "refId": "I"
-          },
-          {
-            "exemplar": true,
-            "expr": "1 - up{job=\"blackbox-exporter\"}",
-            "hide": false,
-            "interval": "",
-            "legendFormat": "blackbox-exporter",
-            "refId": "J"
-          }
-        ],
-        "title": "failing scrapers - down",
-        "type": "timeseries"
-      },
-      {
-        "datasource": null,
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            },
-            "custom": {
-              "axisLabel": "",
-              "axisPlacement": "auto",
-              "barAlignment": 0,
-              "drawStyle": "line",
-              "fillOpacity": 0,
-              "gradientMode": "none",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
-              },
-              "lineInterpolation": "linear",
-              "lineStyle": {
-                "fill": "solid"
-              },
-              "lineWidth": 1,
-              "pointSize": 4,
-              "scaleDistribution": {
-                "type": "linear"
-              },
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "normal"
-              },
-              "thresholdsStyle": {
-                "mode": "off"
-              }
-            },
-            "decimals": 0,
-            "mappings": [],
-            "max": 10,
-            "min": 0,
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 80
-                }
-              ]
-            },
-            "unit": "string"
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 10,
-          "w": 24,
-          "x": 0,
-          "y": 10
-        },
-        "id": 3,
-        "options": {
-          "legend": {
-            "calcs": [],
-            "displayMode": "list",
-            "placement": "bottom"
-          },
-          "tooltip": {
-            "mode": "single"
-          }
-        },
-        "targets": [
-          {
-            "exemplar": true,
-            "expr": "absent(up{job=\"grafana\"})",
-            "interval": "",
-            "legendFormat": "grafana",
-            "refId": "A"
-          },
-          {
-            "exemplar": true,
-            "expr": "absent(up{job=\"karma\"})",
-            "hide": false,
-            "interval": "",
-            "legendFormat": "karma",
-            "refId": "B"
-          },
-          {
-            "exemplar": true,
-            "expr": "absent(up{job=\"cadvisor\"})",
-            "hide": false,
-            "interval": "",
-            "legendFormat": "cadvisor",
-            "refId": "C"
-          },
-          {
-            "exemplar": true,
-            "expr": "absent(up{job=\"dsm-exporter\"})",
-            "hide": false,
-            "interval": "",
-            "legendFormat": "dsm-exporter",
-            "refId": "D"
-          },
-          {
-            "exemplar": true,
-            "expr": "absent(up{job=\"prometheus\"})",
-            "hide": false,
-            "interval": "",
-            "legendFormat": "prometheus",
-            "refId": "E"
-          },
-          {
-            "exemplar": true,
-            "expr": "absent(up{job=\"pushgateway\"})",
-            "hide": false,
-            "interval": "",
-            "legendFormat": "pushgateway",
-            "refId": "F"
-          },
-          {
-            "exemplar": true,
-            "expr": "absent(up{job=\"alertmanager\"})",
-            "hide": false,
-            "interval": "",
-            "legendFormat": "alertmanager",
-            "refId": "G"
-          },
-          {
-            "exemplar": true,
-            "expr": "absent(up{job=\"node\"})",
-            "hide": false,
-            "interval": "",
-            "legendFormat": "node-exporter",
-            "refId": "H"
-          },
-          {
-            "exemplar": true,
-            "expr": "absent(up{job=\"haproxy-exporter\"})",
-            "hide": false,
-            "interval": "",
-            "legendFormat": "haproxy-exporter",
-            "refId": "I"
-          },
-          {
-            "exemplar": true,
-            "expr": "absent(up{job=\"blackbox-exporter\"})",
-            "hide": false,
-            "interval": "",
-            "legendFormat": "blackbox-exporter",
-            "refId": "J"
-          }
-        ],
-        "title": "failing scrapers - no metrics",
-        "type": "timeseries"
+        "type": "dashboard"
       }
-    ],
-    "schemaVersion": 31,
-    "style": "dark",
-    "tags": [],
-    "templating": {
-      "list": []
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": 17837,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 4,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "max": 10,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "string"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "up{job=\"grafana\"}",
+          "interval": "",
+          "legendFormat": "grafana",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "up{job=\"karma\"}",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "karma",
+          "refId": "B"
+        },
+        {
+          "exemplar": true,
+          "expr": "up{job=\"cadvisor\"}",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "cadvisor",
+          "refId": "C"
+        },
+        {
+          "exemplar": true,
+          "expr": "up{job=\"dsm-exporter\"}",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "dsm-exporter",
+          "refId": "D"
+        },
+        {
+          "exemplar": true,
+          "expr": "up{job=\"prometheus\"}",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "prometheus",
+          "refId": "E"
+        },
+        {
+          "exemplar": true,
+          "expr": "up{job=\"pushgateway\"}",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "pushgateway",
+          "refId": "F"
+        },
+        {
+          "exemplar": true,
+          "expr": "up{job=\"alertmanager\"}",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "alertmanager",
+          "refId": "G"
+        },
+        {
+          "exemplar": true,
+          "expr": "up{job=\"node\"}",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "node-exporter",
+          "refId": "H"
+        },
+        {
+          "exemplar": true,
+          "expr": "up{job=\"haproxy-exporter\"}",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "haproxy-exporter",
+          "refId": "I"
+        },
+        {
+          "exemplar": true,
+          "expr": "up{job=\"blackbox-exporter\"}",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "blackbox-exporter",
+          "refId": "J"
+        }
+      ],
+      "title": "prometheus scrapers availability ",
+      "type": "timeseries"
     },
-    "time": {
-      "from": "now-7d",
-      "to": "now"
-    },
-    "timepicker": {},
-    "timezone": "",
-    "title": "Scapers availability",
-    "uid": "ScrapersAvailability",
-    "version": 3
-  }
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 4,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "max": 10,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "string"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 10
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "absent(up{job=\"grafana\"})",
+          "interval": "",
+          "legendFormat": "grafana",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "absent(up{job=\"karma\"})",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "karma",
+          "refId": "B"
+        },
+        {
+          "exemplar": true,
+          "expr": "absent(up{job=\"cadvisor\"})",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "cadvisor",
+          "refId": "C"
+        },
+        {
+          "exemplar": true,
+          "expr": "absent(up{job=\"dsm-exporter\"})",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "dsm-exporter",
+          "refId": "D"
+        },
+        {
+          "exemplar": true,
+          "expr": "absent(up{job=\"prometheus\"})",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "prometheus",
+          "refId": "E"
+        },
+        {
+          "exemplar": true,
+          "expr": "absent(up{job=\"pushgateway\"})",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "pushgateway",
+          "refId": "F"
+        },
+        {
+          "exemplar": true,
+          "expr": "absent(up{job=\"alertmanager\"})",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "alertmanager",
+          "refId": "G"
+        },
+        {
+          "exemplar": true,
+          "expr": "absent(up{job=\"node\"})",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "node-exporter",
+          "refId": "H"
+        },
+        {
+          "exemplar": true,
+          "expr": "absent(up{job=\"haproxy-exporter\"})",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "haproxy-exporter",
+          "refId": "I"
+        },
+        {
+          "exemplar": true,
+          "expr": "absent(up{job=\"blackbox-exporter\"})",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "blackbox-exporter",
+          "refId": "J"
+        }
+      ],
+      "title": "prometheus scrapers - metrics absent",
+      "type": "timeseries"
+    }
+  ],
+  "schemaVersion": 31,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Scrapers availability",
+  "uid": "ScrapersAvailability",
+  "version": 3
+}
