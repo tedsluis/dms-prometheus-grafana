@@ -24,18 +24,14 @@
     "fiscalYearStartMonth": 0,
     "gnetId": 12693,
     "graphTooltip": 1,
-    "id": 17833,
-    "iteration": 1647156053706,
+    "id": 17836,
+    "iteration": 1647322791037,
     "links": [],
     "liveNow": false,
     "panels": [
       {
         "collapsed": false,
         "datasource": "Prometheus",
-        "fieldConfig": {
-          "defaults": {},
-          "overrides": []
-        },
         "gridPos": {
           "h": 1,
           "w": 24,
@@ -799,10 +795,6 @@
       {
         "collapsed": false,
         "datasource": "Prometheus",
-        "fieldConfig": {
-          "defaults": {},
-          "overrides": []
-        },
         "gridPos": {
           "h": 1,
           "w": 24,
@@ -882,7 +874,7 @@
             "expr": "rate(haproxy_frontend_bytes_in_total{frontend=~\"$frontend\"}[$__rate_interval])*8",
             "interval": "$interval",
             "intervalFactor": 1,
-            "legendFormat": "IN  ",
+            "legendFormat": "IN  {{frontend}}",
             "metric": "",
             "refId": "A",
             "step": 240
@@ -892,7 +884,7 @@
             "expr": "rate(haproxy_frontend_bytes_out_total{frontend=~\"$frontend\"}[$__rate_interval])*8",
             "interval": "$interval",
             "intervalFactor": 1,
-            "legendFormat": "IN",
+            "legendFormat": "IN {{frontend}}",
             "refId": "B",
             "step": 240
           }
@@ -1008,7 +1000,7 @@
             "expr": "rate(haproxy_backend_bytes_in_total{backend=~\"$backend\"}[$__rate_interval])*8",
             "interval": "$interval",
             "intervalFactor": 1,
-            "legendFormat": "IN {{ proxy }}",
+            "legendFormat": "IN {{backend}}",
             "metric": "haproxy_backend_",
             "refId": "A",
             "step": 240
@@ -1018,7 +1010,7 @@
             "expr": "rate(haproxy_backend_bytes_out_total{backend=~\"$backend\"}[$__rate_interval])*8",
             "interval": "$interval",
             "intervalFactor": 1,
-            "legendFormat": "OUT {{ proxy }}",
+            "legendFormat": "OUT {{ backend }}",
             "refId": "B",
             "step": 240
           }
@@ -1133,7 +1125,7 @@
             "expr": "rate(haproxy_frontend_connections_total{frontend=~\"$frontend\"}[$__rate_interval])",
             "interval": "$interval",
             "intervalFactor": 1,
-            "legendFormat": "Successful {{ proxy }}",
+            "legendFormat": "Successful {{ frontend }}",
             "metric": "haproxy_backe",
             "refId": "B",
             "step": 240
@@ -1143,7 +1135,7 @@
             "expr": "rate(haproxy_frontend_denied_connections_total{frontend=~\"$frontend\"}[$__rate_interval])",
             "interval": "$interval",
             "intervalFactor": 1,
-            "legendFormat": "Denied {{ proxy }}",
+            "legendFormat": "Denied {{ frontend }}",
             "metric": "haproxy_backe",
             "refId": "A",
             "step": 240
@@ -1260,7 +1252,7 @@
             "hide": false,
             "interval": "$interval",
             "intervalFactor": 1,
-            "legendFormat": "Attempts {{ proxy }}",
+            "legendFormat": "Attempts {{ backend }}",
             "metric": "",
             "refId": "B",
             "step": 240
@@ -1270,7 +1262,7 @@
             "expr": "rate(haproxy_backend_connection_errors_total{backend=~\"$backend\"}[$__rate_interval])",
             "interval": "$interval",
             "intervalFactor": 1,
-            "legendFormat": "Error {{ proxy }}",
+            "legendFormat": "Error {{ backend }}",
             "refId": "A",
             "step": 240
           }
@@ -1322,10 +1314,6 @@
       {
         "collapsed": false,
         "datasource": "Prometheus",
-        "fieldConfig": {
-          "defaults": {},
-          "overrides": []
-        },
         "gridPos": {
           "h": 1,
           "w": 24,
@@ -1409,7 +1397,7 @@
             "expr": "rate(haproxy_frontend_http_requests_total{frontend=~\"$frontend\"}[$__rate_interval])",
             "interval": "$interval",
             "intervalFactor": 1,
-            "legendFormat": "Total {{ proxy }}",
+            "legendFormat": "Total {{ frontend }}",
             "metric": "",
             "refId": "A",
             "step": 240
@@ -1419,7 +1407,7 @@
             "expr": "rate(haproxy_frontend_request_errors_total{frontend=~\"$frontend\"}[$__rate_interval])",
             "interval": "$interval",
             "intervalFactor": 1,
-            "legendFormat": "Error {{ proxy }}",
+            "legendFormat": "Error {{ frontend }}",
             "refId": "B",
             "step": 240
           },
@@ -1428,7 +1416,7 @@
             "expr": "rate(haproxy_frontend_requests_denied_total{frontend=~\"$frontend\"}[$__rate_interval])",
             "interval": "$interval",
             "intervalFactor": 1,
-            "legendFormat": "Denied {{ proxy }}",
+            "legendFormat": "Denied {{ frontend }}",
             "refId": "C",
             "step": 240
           }
@@ -1480,10 +1468,6 @@
       {
         "collapsed": false,
         "datasource": "Prometheus",
-        "fieldConfig": {
-          "defaults": {},
-          "overrides": []
-        },
         "gridPos": {
           "h": 1,
           "w": 24,
@@ -1555,7 +1539,7 @@
             "expr": "haproxy_backend_http_connect_time_average_seconds{backend=~\"$backend\"}",
             "interval": "$interval",
             "intervalFactor": 1,
-            "legendFormat": "{{name}}",
+            "legendFormat": "{{backend}}",
             "metric": "haproxy_backend_current_queue",
             "refId": "B",
             "step": 240
@@ -1665,7 +1649,7 @@
             "expr": "haproxy_backend_http_response_time_average_seconds{backend=~\"$backend\"}",
             "interval": "$interval",
             "intervalFactor": 1,
-            "legendFormat": "{{ proxy }}",
+            "legendFormat": "{{ backend }}",
             "metric": "haproxy_backend_current_queue",
             "refId": "B",
             "step": 240
@@ -1747,7 +1731,7 @@
           "current": true,
           "max": true,
           "min": true,
-          "rightSide": false,
+          "rightSide": true,
           "show": true,
           "total": false,
           "values": true
@@ -1775,7 +1759,7 @@
             "expr": "haproxy_backend_http_total_time_average_seconds{backend=~\"$backend\"}",
             "interval": "$interval",
             "intervalFactor": 1,
-            "legendFormat": "{{ proxy }}",
+            "legendFormat": "{{ backend }}",
             "metric": "haproxy_backend_current_queue",
             "refId": "D",
             "step": 240
@@ -1840,10 +1824,10 @@
           "current": {
             "selected": true,
             "text": [
-              "cadvisor"
+              "All"
             ],
             "value": [
-              "cadvisor"
+              "$__all"
             ]
           },
           "datasource": "Prometheus",
@@ -1874,10 +1858,10 @@
           "current": {
             "selected": true,
             "text": [
-              "cadvisor"
+              "All"
             ],
             "value": [
-              "cadvisor"
+              "$__all"
             ]
           },
           "datasource": "Prometheus",
@@ -1905,7 +1889,7 @@
         {
           "allValue": null,
           "current": {
-            "selected": true,
+            "selected": false,
             "text": [
               "All"
             ],
@@ -1996,7 +1980,7 @@
       ]
     },
     "time": {
-      "from": "now-24h",
+      "from": "now-1h",
       "to": "now"
     },
     "timepicker": {
@@ -2025,7 +2009,7 @@
       ]
     },
     "timezone": "browser",
-    "title": "Haproxy",
+    "title": "Haproxy stats",
     "uid": "haproxy",
-    "version": 4
+    "version": 5
   }
