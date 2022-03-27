@@ -329,11 +329,13 @@
     - blackbox
     - cadvisor
     - dsm
+    - grafana
     - haproxy
     - linux-server
     - karma
     - prometheus
     - pushgateway
+    - p2000
   become: true
   notify: _restart_prometheus
 
