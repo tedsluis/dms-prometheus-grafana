@@ -3,9 +3,9 @@ groups:
       rules:
       - alert: p2000-down
         annotations:
-          description: 'p2000 is down {{ $labels.instance }}'
-          summary: 'p2000 is down'
-        expr: up{job="p2000"} != 1 or absent(up{job="p2000"}) ==1
+          description: 'p2000-exporter is down {{ $labels.instance }}'
+          summary: 'p2000-exporter is down'
+        expr: up{job="p2000-exporter"} != 1 or absent(up{job="p2000-exporter"}) ==1
         for: 1m
         labels:
           severity: critical
