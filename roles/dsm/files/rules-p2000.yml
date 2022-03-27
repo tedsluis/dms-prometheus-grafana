@@ -14,7 +14,7 @@ groups:
         annotations:
           description: '{{ $labels.pubdate }}: {{ $labels.description }} - {{ $labels.title }} - {{ $labels.link }}'
           summary: 'p2000 is down'
-        expr: p2000_seconds_since_event{title=~"P_.*",description=~"Brandweer.*"} > 0 AND p2000_seconds_since_event{title=~"P_.*",description=~"Brandweer.*"} < 36000
+        expr: p2000_seconds_since_event{title=~"P_.*",description=~"Brandweer.*"} > -36000 AND p2000_seconds_since_event{title=~"P_.*",description=~"Brandweer.*"} < 36000
         for: 1m
         labels:
           severity: critical
