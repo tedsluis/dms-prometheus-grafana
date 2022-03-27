@@ -1,11 +1,11 @@
 groups:
-    - name: karma.rules
+    - name: grafana.rules
       rules:
-      - alert: karma-down
+      - alert: grafana-down
         annotations:
-          description: 'karma is down {{ $labels.instance }}'
-          summary: 'karma is down'
-        expr: up{job="karma"} != 1 or absent(up{job="karma"}) ==1
+          description: 'grafana is down {{ $labels.instance }}'
+          summary: 'grafana is down'
+        expr: up{job="grafana"} != 1 or absent(up{job="grafana"}) ==1
         for: 1m
         labels:
           severity: critical
