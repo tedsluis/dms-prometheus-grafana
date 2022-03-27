@@ -61,6 +61,7 @@
     - { directory: "/var/lib/dsm/alerta/docker-alerta"                ,owner: "root" ,group: "root" ,mode: "0775" }
     - { directory: "/var/lib/dsm/mongodb"                             ,owner: "root" ,group: "root" ,mode: "0775" }
     - { directory: "/var/lib/dsm/mongodb/db"                          ,owner: "root" ,group: "root" ,mode: "0775" }
+    - { directory: "/var/lib/dsm/p2000exporter"                       ,owner: "root"  ,group: "root"  ,mode: "0775" }
    
 # - name: Pull images
 #   containers.podman.podman_image:
@@ -107,6 +108,24 @@
     name: "cadvisor:{{_cadvisor_version}}"
     path: /var/lib/dsm/cadvisor/
   become: true
+
+- name: git clone https://github.com/tedsluis/p2000-exporter.git
+  ansible.builtin.git:
+    repo: 'https://github.com/tedsluis/p2000-exporter.git'
+    dest: /var/lib/dsm/p2000exporter
+    version: main
+    force: yes
+  become: true
+  notify: _restart_p2000exporter
+
+
+- name: Build p2000-exporter image
+  containers.podman.podman_image:
+    name: "p2000-exporter:latest"
+    path: /var/lib/dsm/p2000exporter/
+    force: true
+  become: true
+  notify: _restart_p2000exporter
 
 # - name: git clone https://github.com/alerta/docker-alerta.git
 #   ansible.builtin.git:
@@ -499,6 +518,7 @@
     - dashboard-haproxy.json
     - dashboard-cadvisor.json
     - dashboard-scrapers-availability.json
+    - dashboard-p2000.json
   notify: _restart_grafana
 
 - name: create /var/lib/dsm/grafana/etc/provisioning/dashboards/dashboard.*.yaml
@@ -520,6 +540,7 @@
     - { _dashboard_name: 'haproxy-exporter', _dashboard_filename: 'dashboard-haproxy.json' }
     - { _dashboard_name: 'cadvisor', _dashboard_filename: 'dashboard-cadvisor.json' }
     - { _dashboard_name: 'scapers availability', _dashboard_filename: 'dashboard-scrapers-availability.json' }
+    - { _dashboard_name: 'p2000', _dashboard_filename: 'dashboard-p2000.json' }
   notify: _restart_grafana
 
 - name: influxdb influxdb.conf
@@ -548,6 +569,7 @@
     state: started
     ports:
       - 443:443
+      - 2000:2000
       - 3000:3000
       - 8080:8080
       - 8081:8081
@@ -946,6 +968,28 @@
     - containers
     - pushgateway
 
+- name: create p2000-exporter container
+  containers.podman.podman_container:
+    name: p2000-exporter
+    image: localhost/p2000-exporter
+    command:
+      - '--matches=utrecht'
+      - '--url=www.alarmeringdroid.nl/rss/bf2ab06c'
+      - '--port=2000'
+    pod: dsm
+    state: present
+    user: 65534
+    recreate: yes
+    expose: 2000
+    generate_systemd:
+      path: /etc/systemd/system
+      restart_policy: on-failure
+      names: true
+  become: true
+  tags: 
+    - containers
+    - p2000exporter
+
 - name: start and enable services
   systemd:
     name: "{{item}}"
@@ -966,6 +1010,7 @@
     - container-node-exporter
     - container-pushgateway
     - container-prometheus
+    - container-p2000-exporter
   become: true
   tags: 
     - containers
@@ -981,6 +1026,7 @@
     - nodeexporter
     - pushgateway
     - prometheus
+    - p2000exporter
 
 - name: container state
   shell: |
@@ -999,6 +1045,7 @@
     - node-exporter
     - prometheus
     - pushgateway
+    - p2000-exporter
   become: true
   tags: 
     - containers
@@ -1014,6 +1061,7 @@
     - nodeexporter
     - pushgateway
     - prometheus
+    - p2000exporter
 
 - debug:
     var: _container_state

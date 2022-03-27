@@ -149,3 +149,18 @@
     name: container-haproxy
     state: started
   become: true
+
+- name: stop container-p2000-exporter.service
+  listen: _restart_p2000exporter
+  systemd:
+    name: container-p2000-exporter
+    state: stopped
+    daemon_reload: true
+  become: true
+  
+- name: start container-p2000-exporter.service
+  listen: _restart_p2000exporter
+  systemd:
+    name: container-p2000-exporter
+    state: started
+  become: true
