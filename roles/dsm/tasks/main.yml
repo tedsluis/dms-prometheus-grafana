@@ -526,23 +526,23 @@
 - name: create /var/lib/dsm/grafana/etc/provisioning/dashboards/dashboard.*.yaml
   template:
     src: grafana-dashboard.yaml.j2
-    dest: "/var/lib/dsm/grafana/etc/provisioning/dashboards/{{item._dashboard_filename}}"
+    dest: "/var/lib/dsm/grafana/etc/provisioning/dashboards/{{item._dashboard_filename}}.yaml"
     owner: 472
     group: 472
     mode: 0666
   become: true
   with_items: 
-    - { _dashboard_name: 'alertmanager', _dashboard_filename: 'dashboard-alertmanager.json' } 
-    - { _dashboard_name: 'blackbox', _dashboard_filename: 'dashboard-blackbox.json' }
-    - { _dashboard_name: 'fijnstof', _dashboard_filename: 'dashboard-fijnstof.json' }
-    - { _dashboard_name: 'karma', _dashboard_filename: 'dashboard-karma.json' }
-    - { _dashboard_name: 'nodeexporter', _dashboard_filename: 'dashboard-nodeexporter.json' }
-    - { _dashboard_name: 'prometheus', _dashboard_filename: 'dashboard-prometheus.json' }
-    - { _dashboard_name: 'de slimme meter', _dashboard_filename: 'dashboard-smartmeter.json' }
-    - { _dashboard_name: 'haproxy-exporter', _dashboard_filename: 'dashboard-haproxy.json' }
-    - { _dashboard_name: 'cadvisor', _dashboard_filename: 'dashboard-cadvisor.json' }
-    - { _dashboard_name: 'scapers availability', _dashboard_filename: 'dashboard-scrapers-availability.json' }
-    - { _dashboard_name: 'p2000', _dashboard_filename: 'dashboard-p2000.json' }
+    - { _dashboard_name: 'alertmanager', _dashboard_filename: 'dashboard-alertmanager' } 
+    - { _dashboard_name: 'blackbox', _dashboard_filename: 'dashboard-blackbox' }
+    - { _dashboard_name: 'fijnstof', _dashboard_filename: 'dashboard-fijnstof' }
+    - { _dashboard_name: 'karma', _dashboard_filename: 'dashboard-karma' }
+    - { _dashboard_name: 'nodeexporter', _dashboard_filename: 'dashboard-nodeexporter' }
+    - { _dashboard_name: 'prometheus', _dashboard_filename: 'dashboard-prometheus' }
+    - { _dashboard_name: 'de slimme meter', _dashboard_filename: 'dashboard-smartmeter' }
+    - { _dashboard_name: 'haproxy-exporter', _dashboard_filename: 'dashboard-haproxy' }
+    - { _dashboard_name: 'cadvisor', _dashboard_filename: 'dashboard-cadvisor' }
+    - { _dashboard_name: 'scapers availability', _dashboard_filename: 'dashboard-scrapers-availability' }
+    - { _dashboard_name: 'p2000', _dashboard_filename: 'dashboard-p2000' }
   notify: _restart_grafana
 
 - name: influxdb influxdb.conf
@@ -639,6 +639,7 @@
       - '--web.config.file=/etc/alertmanager/web-config.yml'
       - '--log.level=debug'
     pod: dsm
+    timezone: "Europe/Amsterdam"
     state: present
     user: 65534
     recreate: yes
@@ -666,6 +667,7 @@
       - '--web.config.file=/config/web-config.yml'
       - '--log.level=debug'
     pod: dsm
+    timezone: "Europe/Amsterdam"
     state: present
     user: 65534
     recreate: yes
@@ -690,6 +692,7 @@
     name: cadvisor
     image:  "localhost/cadvisor:{{_cadvisor_version}}"
     pod: dsm
+    timezone: "Europe/Amsterdam"
     state: present
     privileged: yes
     device: /dev/kmsg:/dev/kmsg:rwm
@@ -723,6 +726,7 @@
     privileged: yes
     pod: dsm
     command: '-device /dev/ttyUSB0'
+    timezone: "Europe/Amsterdam"
     state: present
     recreate: yes
     expose: 8080
@@ -740,6 +744,7 @@
     name: grafana
     image: docker.io/grafana/grafana:8.2.3
     pod: dsm
+    timezone: "Europe/Amsterdam"
     state: present
     user: 472
     recreate: yes
@@ -762,6 +767,7 @@
     name: haproxy
     image: docker.io/haproxy:latest
     pod: dsm
+    timezone: "Europe/Amsterdam"
     state: present
     user: 99
     recreate: yes
@@ -792,6 +798,7 @@
       - '--web.config.file=/etc/ssl/certs/web-config.yml'
       - '--log.level=debug'
     pod: dsm
+    timezone: "Europe/Amsterdam"
     state: present
     user: 65534
     recreate: yes
@@ -821,6 +828,7 @@
       INFLUXDB_ADMIN_USER=influxdb
       INFLUXDB_ADMIN_PASSWORD={{_influxdb_password}}
       INFLUXDB_DB=luftdaten
+    timezone: "Europe/Amsterdam"
     state: present
     user: 0
     recreate: yes
@@ -844,6 +852,7 @@
     command:
       - '--config.file=/etc/karma/karma.yml'
     pod: dsm
+    timezone: "Europe/Amsterdam"
     state: present
     #user: 
     recreate: yes
@@ -890,6 +899,7 @@
       - '--path.rootfs=/host'
       - '--web.config=/etc/web-config.yml'
       - '--log.level=debug'
+    timezone: "Europe/Amsterdam"
     state: present
     user: 65534
     recreate: yes
@@ -922,6 +932,7 @@
       - '--web.config.file=/etc/prometheus/web-config.yml'
       - '--log.level=debug'
     pod: dsm
+    timezone: "Europe/Amsterdam"
     state: present
     user: 65534
     recreate: yes
@@ -951,6 +962,7 @@
       - '--log.level=debug'
       - '--persistence.file="/pushgateway/data/pushgateway_persist"'
     pod: dsm
+    timezone: "Europe/Amsterdam"
     state: present
     user: 65534
     recreate: yes
@@ -979,6 +991,7 @@
       - '--url=www.alarmeringdroid.nl/rss/bf2ab06c'
       - '--port=2000'
     pod: dsm
+    timezone: "Europe/Amsterdam"
     state: present
     user: 65534
     recreate: yes
