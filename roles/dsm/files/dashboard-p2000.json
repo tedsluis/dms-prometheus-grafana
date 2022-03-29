@@ -23,7 +23,7 @@
     "gnetId": null,
     "graphTooltip": 0,
     "id": 17838,
-    "iteration": 1648395082941,
+    "iteration": 1648571077234,
     "links": [],
     "liveNow": false,
     "panels": [
@@ -102,7 +102,7 @@
             "exemplar": true,
             "expr": "p2000_seconds_since_event{description=~\"$type.*\",title=~\"$prio.*\"}",
             "interval": "",
-            "legendFormat": "{{title}}",
+            "legendFormat": "{{title}}: {{pubdate}}",
             "refId": "A"
           }
         ],
@@ -266,7 +266,7 @@
             "exemplar": true,
             "expr": "p2000_scrape_response_time_seconds{status=\"200\"}",
             "interval": "",
-            "legendFormat": "http_code = 200",
+            "legendFormat": "http_code = {{status}}",
             "refId": "A"
           },
           {
@@ -274,7 +274,7 @@
             "expr": "p2000_scrape_response_time_seconds{status!~\"200\"}",
             "hide": false,
             "interval": "",
-            "legendFormat": "http_code != 200",
+            "legendFormat": "http_code = {{status}}",
             "refId": "B"
           }
         ],
@@ -445,6 +445,7 @@
         "type": "timeseries"
       }
     ],
+    "refresh": "10s",
     "schemaVersion": 31,
     "style": "dark",
     "tags": [],
@@ -522,5 +523,5 @@
     "timezone": "browser",
     "title": "P2000",
     "uid": "P2000",
-    "version": 3
+    "version": 5
   }
