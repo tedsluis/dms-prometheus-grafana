@@ -17,5 +17,23 @@ groups:
         expr: p2000_seconds_since_event{title=~"P_.*",description=~"Brandweer.*"} > -36000 AND p2000_seconds_since_event{title=~"P_.*",description=~"Brandweer.*"} < 36000
         for: 1m
         labels:
-          severity: critical
+          severity: informational
+          repeat_interval: 1h
+      - alert: politie
+        annotations:
+          description: '{{ $labels.pubdate }}: {{ $labels.description }} - {{ $labels.title }} - {{ $labels.link }}'
+          summary: 'p2000 is down'
+        expr: p2000_seconds_since_event{description=~"Politie.*"} > -36000 AND p2000_seconds_since_event{description=~"Politie.*"} < 36000
+        for: 1m
+        labels:
+          severity: informational
+          repeat_interval: 1h
+      - alert: ambulance
+        annotations:
+          description: '{{ $labels.pubdate }}: {{ $labels.description }} - {{ $labels.title }} - {{ $labels.link }}'
+          summary: 'p2000 is down'
+        expr: p2000_seconds_since_event{title=~"A[0-9]_.*",description=~"Ambulance.*"} > -36000 AND p2000_seconds_since_event{title=~"A[0-9]_.*",description=~"Ambulannce.*"} < 36000
+        for: 1m
+        labels:
+          severity: informational
           repeat_interval: 1h
