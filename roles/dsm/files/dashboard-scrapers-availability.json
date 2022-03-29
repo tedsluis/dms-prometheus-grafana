@@ -181,6 +181,14 @@
           "interval": "",
           "legendFormat": "blackbox-exporter",
           "refId": "J"
+        },
+        {
+          "exemplar": true,
+          "expr": "up{job=\"p2000-exporter\"}",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "p2000-exporter",
+          "refId": "K"
         }
       ],
       "title": "prometheus scrapers availability ",
@@ -341,6 +349,14 @@
           "interval": "",
           "legendFormat": "blackbox-exporter",
           "refId": "J"
+        },
+        {
+          "exemplar": true,
+          "expr": "absent(up{job=\"p2000-exporter\"})",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "p2000-exporter",
+          "refId": "K"
         }
       ],
       "title": "prometheus scrapers - metrics absent",
@@ -361,5 +377,5 @@
   "timezone": "browser",
   "title": "Scrapers availability",
   "uid": "ScrapersAvailability",
-  "version": 3
+  "version": 5
 }
