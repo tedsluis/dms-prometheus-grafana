@@ -238,7 +238,7 @@ scrape_configs:
   # p2000-exporter
   - job_name: p2000-exporter
     scheme: http
-    scrape_interval: 5s
+    scrape_interval: 15s
     static_configs:
     - targets:
       - {{inventory_hostname}}:2000
