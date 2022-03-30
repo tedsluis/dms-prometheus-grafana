@@ -12,9 +12,9 @@ groups:
           repeat_interval: 1h
       - alert: pushgateway-test
         annotations:
-          description: 'pushgateway is down {{ $labels.instance }}'
+          description: 'deploy_dsm_finished - value: {{ value }} - instance: {{ $labels.instance }}'
           summary: 'pushgateway is down'
-        expr: up{job="pushgateway"} != 1 or absent(up{job="pushgateway"}) ==1
+        expr: deploy_dsm_finished{instance="test_instance",job="test_job",label="dsm"} != 1 or absent(deploy_dsm_finished{instance="test_instance",job="test_job",label="dsm"}) == 1
         for: 1m
         labels:
           severity: critical
