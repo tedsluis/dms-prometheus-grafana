@@ -1104,11 +1104,41 @@
 - debug:
     var: _set_grafana_password
 
-- name: test metric to pushgateway
-  shell: | 
-    cat <<EOF | curl --data-binary @- https://dsm:9091/metrics/job/test_job/instance/test_instance
-    # TYPE some_metric counter
-    deploy_dsm_finished{label="{{inventory_hostname}}"} 1 
-    # TYPE another_metric gauge
-    EOF
+- name: pushgateway metrics
+  copy:
+    content: |
+      # HELP deploy_dsm_finished Number 
+      # TYPE deploy_dsm_finished gauge
+      deploy_dsm_finished{label="{{inventory_hostname}}"} 1
+    dest: /tmp/pushgateway.txt
+  become: true
   tags: pushmetric
+
+- name: "pause until pushgateway is reachable"
+  uri:
+    url: "https://{{inventory_hostname}}:9091/-/healthy"
+    follow_redirects: none
+    method: GET
+  register: _result
+  until: _result.status == 200
+  retries: 100 # 60 * 5 seconds = 5 minutes
+  delay: 5 # Every 5 seconds
+  tags: pushmetric
+
+- name: push metric to pushgateway
+  uri:
+    url: https://dsm:9091/metrics/job/test_job/instance/test_instance
+    method: PUT
+    src: /tmp/pushgateway.txt
+    remote_src: true
+    headers: 
+      Content-Type: application/octet-stream
+    status_code: [200]
+  register: _upload_result
+  become: true
+  tags: pushmetric
+
+- debug:
+    var: _upload_result
+  tags: pushmetric
+
