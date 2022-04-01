@@ -987,7 +987,7 @@
     name: p2000-exporter
     image: localhost/p2000-exporter
     command:
-      - '--matches=utrecht'
+      - '--filter=utrecht'
       - '--url=www.alarmeringdroid.nl/rss/bf2ab06c'
       - '--port=2000'
     pod: dsm
