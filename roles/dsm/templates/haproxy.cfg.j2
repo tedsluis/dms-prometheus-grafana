@@ -62,6 +62,11 @@ frontend dsmexporter
     bind *:8440 ssl crt /usr/local/etc/haproxy/haproxy.pem ca-file /usr/local/etc/haproxy/ca-certificate.pem
     use_backend dsmexporter
 
+frontend p2000exporter
+    mode http
+    bind *:2443 ssl crt /usr/local/etc/haproxy/haproxy.pem ca-file /usr/local/etc/haproxy/ca-certificate.pem
+    use_backend p2000exporter
+
 backend cadvisor
     mode http
     http-request add-header X-Forwarded-Proto "https" if { ssl_fc }
@@ -76,3 +81,9 @@ backend dsmexporter
     option forwardfor
     server dsmexporter localhost:8080 check
 
+backend p2000exporter
+    mode http
+    http-request add-header X-Forwarded-Proto "https" if { ssl_fc }
+    http-response set-header Content-Security-Policy upgrade-insecure-requests
+    option forwardfor
+    server p2000exporter localhost:2000 check

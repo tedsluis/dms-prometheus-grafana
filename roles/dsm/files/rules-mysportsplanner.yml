@@ -1,0 +1,39 @@
+groups:
+    - name: mysportsplanner.rules
+      rules:
+      - alert: mysportsplanner-down
+        annotations:
+          description: 'mysportsplanner-exporter is down {{ $labels.instance }}'
+          summary: 'mysportsplanner-exporter is down'
+        expr: up{job="mysportsplanner-exporter"} != 1 or absent(up{job="mysportsplanner-exporter"}) ==1
+        for: 1m
+        labels:
+          severity: critical
+          repeat_interval: 1h
+      - alert: brandweeralarm
+        annotations:
+          description: '{{ $labels.pubdate }}: {{ $labels.description }} - {{ $labels.title }} - {{ $labels.link }}'
+          summary: 'mysportsplanner is down'
+        expr: mysportsplanner_seconds_since_event{title=~"P_.*",description=~"Brandweer.*"} > -36000 AND mysportsplanner_seconds_since_event{title=~"P_.*",description=~"Brandweer.*"} < 36000
+        for: 1m
+        labels:
+          severity: informational
+          repeat_interval: 1h
+      - alert: politie
+        annotations:
+          description: '{{ $labels.pubdate }}: {{ $labels.description }} - {{ $labels.title }} - {{ $labels.link }}'
+          summary: 'mysportsplanner is down'
+        expr: mysportsplanner_seconds_since_event{description=~"Politie.*"} > -36000 AND mysportsplanner_seconds_since_event{description=~"Politie.*"} < 36000
+        for: 1m
+        labels:
+          severity: informational
+          repeat_interval: 1h
+      - alert: ambulance
+        annotations:
+          description: '{{ $labels.pubdate }}: {{ $labels.description }} - {{ $labels.title }} - {{ $labels.link }}'
+          summary: 'mysportsplanner is down'
+        expr: mysportsplanner_seconds_since_event{title=~"A[0-9]_.*",description=~"Ambulance.*"} > -36000 AND mysportsplanner_seconds_since_event{title=~"A[0-9]_.*",description=~"Ambulannce.*"} < 36000
+        for: 1m
+        labels:
+          severity: informational
+          repeat_interval: 1h

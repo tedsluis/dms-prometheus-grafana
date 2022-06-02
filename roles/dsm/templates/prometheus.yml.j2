@@ -238,7 +238,16 @@ scrape_configs:
   # p2000-exporter
   - job_name: p2000-exporter
     scheme: http
-    scrape_interval: 15s
+    scrape_interval: 30s
     static_configs:
     - targets:
       - {{inventory_hostname}}:2000
+
+  # mysportsplanner-exporter
+  - job_name: mysportsplanner-exporter
+    scheme: http
+    scrape_interval: 300s
+    scrape_timeout: 240s
+    static_configs:
+    - targets:
+      - {{inventory_hostname}}:5000

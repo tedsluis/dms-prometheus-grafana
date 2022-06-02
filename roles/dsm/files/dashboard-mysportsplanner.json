@@ -1,0 +1,897 @@
+{
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "target": {
+            "limit": 100,
+            "matchAny": false,
+            "tags": [],
+            "type": "dashboard"
+          },
+          "type": "dashboard"
+        }
+      ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": 17843,
+    "iteration": 1653073664595,
+    "links": [],
+    "liveNow": false,
+    "panels": [
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "jjVjJQ27k"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "align": "auto",
+              "displayMode": "auto",
+              "inspect": true,
+              "width": 200
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "last_changed"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "gewijzigd op"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "member_email"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "email"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "member_full_name"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "naam"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "member_team"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "team"
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 20,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        },
+        "id": 15,
+        "options": {
+          "footer": {
+            "enablePagination": false,
+            "fields": "",
+            "reducer": [
+              "sum"
+            ],
+            "show": false
+          },
+          "showHeader": true,
+          "sortBy": [
+            {
+              "desc": true,
+              "displayName": "gewijzigd op"
+            }
+          ]
+        },
+        "pluginVersion": "8.5.2",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "jjVjJQ27k"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "mysportplanner_schedule{presence=\"aanwezig\",event_date=\"$dd-$mm-$yyyy\",event_activity=\"$training\"}",
+            "format": "table",
+            "instant": false,
+            "interval": "",
+            "legendFormat": "__auto",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Planning   $dag   $dd-$mm-$yyyy   $training  $tijd - aanwezig",
+        "transformations": [
+          {
+            "id": "groupBy",
+            "options": {
+              "fields": {
+                "Value": {
+                  "aggregations": []
+                },
+                "last_changed": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "member_email": {
+                  "aggregations": []
+                },
+                "member_full_name": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "member_team": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "memo": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "presence": {
+                  "aggregations": []
+                }
+              }
+            }
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "jjVjJQ27k"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "align": "auto",
+              "displayMode": "auto",
+              "inspect": true,
+              "width": 200
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "last_changed"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "gewijzigd"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "member_email"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "email"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "member_full_name"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "naam"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "member_team"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "team"
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 13,
+          "w": 24,
+          "x": 0,
+          "y": 20
+        },
+        "id": 16,
+        "options": {
+          "footer": {
+            "enablePagination": false,
+            "fields": "",
+            "reducer": [
+              "sum"
+            ],
+            "show": false
+          },
+          "showHeader": true,
+          "sortBy": [
+            {
+              "desc": true,
+              "displayName": "gewijzigd"
+            }
+          ]
+        },
+        "pluginVersion": "8.5.2",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "jjVjJQ27k"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "mysportplanner_schedule{presence=\"afwezig\",event_date=\"$dd-$mm-$yyyy\",event_activity=\"$training\"}",
+            "format": "table",
+            "instant": false,
+            "interval": "",
+            "legendFormat": "__auto",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Planning   $dag   $dd-$mm-$yyyy   $training  $tijd - afwezig",
+        "transformations": [
+          {
+            "id": "groupBy",
+            "options": {
+              "fields": {
+                "Value": {
+                  "aggregations": []
+                },
+                "last_changed": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "member_email": {
+                  "aggregations": []
+                },
+                "member_full_name": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "member_team": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "memo": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "presence": {
+                  "aggregations": []
+                }
+              }
+            }
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "jjVjJQ27k"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "align": "auto",
+              "displayMode": "auto",
+              "inspect": true,
+              "width": 200
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "member_email"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "email"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "member_full_name"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "naam"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "member_team"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "team"
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 30,
+          "w": 24,
+          "x": 0,
+          "y": 33
+        },
+        "id": 17,
+        "options": {
+          "footer": {
+            "enablePagination": false,
+            "fields": "",
+            "reducer": [
+              "sum"
+            ],
+            "show": false
+          },
+          "showHeader": true,
+          "sortBy": [
+            {
+              "desc": false,
+              "displayName": "naam"
+            }
+          ]
+        },
+        "pluginVersion": "8.5.2",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "jjVjJQ27k"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "mysportplanner_schedule{presence=\"niet gepland\",event_date=\"$dd-$mm-$yyyy\",event_activity=\"$training\",member_team=~\"$team\"}",
+            "format": "table",
+            "instant": false,
+            "interval": "",
+            "legendFormat": "__auto",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Planning   $dag   $dd-$mm-$yyyy   $training  $tijd - niet gepland",
+        "transformations": [
+          {
+            "id": "groupBy",
+            "options": {
+              "fields": {
+                "Value": {
+                  "aggregations": []
+                },
+                "last_changed": {
+                  "aggregations": []
+                },
+                "member_email": {
+                  "aggregations": []
+                },
+                "member_full_name": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "member_team": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "memo": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "presence": {
+                  "aggregations": []
+                }
+              }
+            }
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "jjVjJQ27k"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "align": "auto",
+              "displayMode": "auto",
+              "inspect": true,
+              "width": 250
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "member_email"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "email"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "member_full_name"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "naam"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "member_team"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "team"
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 30,
+          "w": 24,
+          "x": 0,
+          "y": 63
+        },
+        "id": 18,
+        "options": {
+          "footer": {
+            "enablePagination": false,
+            "fields": "",
+            "reducer": [
+              "sum"
+            ],
+            "show": false
+          },
+          "showHeader": true,
+          "sortBy": [
+            {
+              "desc": false,
+              "displayName": "naam"
+            }
+          ]
+        },
+        "pluginVersion": "8.5.2",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "jjVjJQ27k"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "mysportplanner_schedule{member_team=~\"$team\"}",
+            "format": "table",
+            "instant": false,
+            "interval": "",
+            "legendFormat": "__auto",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "$team",
+        "transformations": [
+          {
+            "id": "groupBy",
+            "options": {
+              "fields": {
+                "Value": {
+                  "aggregations": []
+                },
+                "last_changed": {
+                  "aggregations": []
+                },
+                "member_email": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "member_full_name": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "member_team": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "memo": {
+                  "aggregations": []
+                },
+                "presence": {
+                  "aggregations": []
+                }
+              }
+            }
+          }
+        ],
+        "type": "table"
+      }
+    ],
+    "refresh": false,
+    "schemaVersion": 36,
+    "style": "dark",
+    "tags": [],
+    "templating": {
+      "list": [
+        {
+          "current": {
+            "selected": true,
+            "text": "zondag",
+            "value": "zondag"
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "jjVjJQ27k"
+          },
+          "definition": "label_values(mysportplanner_schedule,event_day)",
+          "hide": 0,
+          "includeAll": false,
+          "label": "dag",
+          "multi": false,
+          "name": "dag",
+          "options": [],
+          "query": {
+            "query": "label_values(mysportplanner_schedule,event_day)",
+            "refId": "StandardVariableQuery"
+          },
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 1,
+          "type": "query"
+        },
+        {
+          "current": {
+            "selected": false,
+            "text": "Recreanten",
+            "value": "Recreanten"
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "jjVjJQ27k"
+          },
+          "definition": "label_values(mysportplanner_schedule{event_day=~\"$dag\"},event_activity)",
+          "hide": 0,
+          "includeAll": false,
+          "label": "training",
+          "multi": false,
+          "name": "training",
+          "options": [],
+          "query": {
+            "query": "label_values(mysportplanner_schedule{event_day=~\"$dag\"},event_activity)",
+            "refId": "StandardVariableQuery"
+          },
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 1,
+          "type": "query"
+        },
+        {
+          "current": {
+            "selected": false,
+            "text": "2022",
+            "value": "2022"
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "jjVjJQ27k"
+          },
+          "definition": "label_values(mysportplanner_schedule{event_day=~\"$dag\",event_activity=\"$training\"},event_date)",
+          "hide": 0,
+          "includeAll": false,
+          "label": "yyyy",
+          "multi": false,
+          "name": "yyyy",
+          "options": [],
+          "query": {
+            "query": "label_values(mysportplanner_schedule{event_day=~\"$dag\",event_activity=\"$training\"},event_date)",
+            "refId": "StandardVariableQuery"
+          },
+          "refresh": 1,
+          "regex": "/^\\d+-\\d+-(\\d+)/",
+          "skipUrlSync": false,
+          "sort": 1,
+          "type": "query"
+        },
+        {
+          "current": {
+            "selected": true,
+            "text": "05",
+            "value": "05"
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "jjVjJQ27k"
+          },
+          "definition": "label_values(mysportplanner_schedule{event_day=~\"$dag\",event_activity=\"$training\",event_date=~\".*-.*-$yyyy\"},event_date)",
+          "hide": 0,
+          "includeAll": false,
+          "label": "mm",
+          "multi": false,
+          "name": "mm",
+          "options": [],
+          "query": {
+            "query": "label_values(mysportplanner_schedule{event_day=~\"$dag\",event_activity=\"$training\",event_date=~\".*-.*-$yyyy\"},event_date)",
+            "refId": "StandardVariableQuery"
+          },
+          "refresh": 1,
+          "regex": "/^\\d+-(\\d+)-\\d+/",
+          "skipUrlSync": false,
+          "sort": 3,
+          "type": "query"
+        },
+        {
+          "current": {
+            "selected": false,
+            "text": "22",
+            "value": "22"
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "jjVjJQ27k"
+          },
+          "definition": "label_values(mysportplanner_schedule{event_day=~\"$dag\",event_activity=\"$training\",event_date=~\".*-$mm-$yyyy\"},event_date)",
+          "hide": 0,
+          "includeAll": false,
+          "label": "dd",
+          "multi": false,
+          "name": "dd",
+          "options": [],
+          "query": {
+            "query": "label_values(mysportplanner_schedule{event_day=~\"$dag\",event_activity=\"$training\",event_date=~\".*-$mm-$yyyy\"},event_date)",
+            "refId": "StandardVariableQuery"
+          },
+          "refresh": 1,
+          "regex": "/^(\\d+)-\\d+-\\d+/",
+          "skipUrlSync": false,
+          "sort": 3,
+          "type": "query"
+        },
+        {
+          "current": {
+            "selected": false,
+            "text": "09:45 - 13:00",
+            "value": "09:45 - 13:00"
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "jjVjJQ27k"
+          },
+          "definition": "label_values(mysportplanner_schedule{event_day=~\"$dag\",event_activity=\"$training\",event_date=~\".*-$mm-$yyyy\"},event_time)",
+          "hide": 2,
+          "includeAll": false,
+          "label": "tijd",
+          "multi": false,
+          "name": "tijd",
+          "options": [],
+          "query": {
+            "query": "label_values(mysportplanner_schedule{event_day=~\"$dag\",event_activity=\"$training\",event_date=~\".*-$mm-$yyyy\"},event_time)",
+            "refId": "StandardVariableQuery"
+          },
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 1,
+          "type": "query"
+        },
+        {
+          "current": {
+            "selected": true,
+            "text": [
+              "Recreantenteam"
+            ],
+            "value": [
+              "Recreantenteam"
+            ]
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "jjVjJQ27k"
+          },
+          "definition": "label_values(mysportplanner_schedule,member_team)",
+          "hide": 0,
+          "includeAll": true,
+          "label": "team",
+          "multi": true,
+          "name": "team",
+          "options": [],
+          "query": {
+            "query": "label_values(mysportplanner_schedule,member_team)",
+            "refId": "StandardVariableQuery"
+          },
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 1,
+          "type": "query"
+        },
+        {
+          "current": {
+            "selected": true,
+            "text": [
+              "All"
+            ],
+            "value": [
+              "$__all"
+            ]
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "jjVjJQ27k"
+          },
+          "definition": "label_values(mysportplanner_schedule{member_team=\"$team\"},member_full_name)",
+          "hide": 0,
+          "includeAll": true,
+          "label": "naam",
+          "multi": true,
+          "name": "naam",
+          "options": [],
+          "query": {
+            "query": "label_values(mysportplanner_schedule{member_team=\"$team\"},member_full_name)",
+            "refId": "StandardVariableQuery"
+          },
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 1,
+          "type": "query"
+        }
+      ]
+    },
+    "time": {
+      "from": "now-5m",
+      "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "mysportsplanner",
+    "uid": "mysportsplanner",
+    "version": 44,
+    "weekStart": ""
+  }

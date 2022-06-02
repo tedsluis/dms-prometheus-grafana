@@ -164,3 +164,18 @@
     name: container-p2000-exporter
     state: started
   become: true
+
+- name: stop container-mysportsplanner-exporter.service
+  listen: _restart_mysportsplannerexporter
+  systemd:
+    name: container-mysportsplanner-exporter
+    state: stopped
+    daemon_reload: true
+  become: true
+  
+- name: start container-mysportsplanner-exporter.service
+  listen: _restart_mysportsplannerexporter
+  systemd:
+    name: container-mysportsplanner-exporter
+    state: started
+  become: true
